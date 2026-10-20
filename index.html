@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cumple de Jazmín - Panel de Control</title>
+  <style>
+    :root {
+      --primary: #e91e63;
+      --primary-hover: #d81b60;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --gray: #6c757d;
+      --light-gray: #f1f3f5;
+      --border-color: #dee2e6;
+      --input-bg: #ffffff;
+      --table-header: #fdf2f4;
+      --green: #2ecc71;
+      --orange: #f39c12;
+      --blue: #3498db;
+      --purple: #9b59b6;
+      --border-radius: 12px;
+    }
+
+    [data-theme="dark"] {
+      --primary: #ff4081;
+      --primary-hover: #f50057;
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --text: #e0e0e0;
+      --gray: #a0a0a0;
+      --light-gray: #2c2c2c;
+      --border-color: #333333;
+      --input-bg: #2a2a2a;
+      --table-header: #2c1a22;
+      --green: #27ae60;
+      --orange: #d35400;
+      --blue: #2980b9;
+      --purple: #8e44ad;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); padding: 15px; max-width: 1300px; margin: 0 auto; touch-action: manipulation; transition: background 0.3s, color 0.3s; }
+
+    /* Pantalla de Bloqueo */
+    #pantalla-bloqueo {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background-color: var(--bg); z-index: 9999;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+    }
+    .lock-card {
+      background: var(--card-bg); padding: 25px; border-radius: var(--border-radius);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 350px;
+    }
+    .lock-card h2 { margin-bottom: 10px; color: var(--text); }
+    .lock-card p { margin-bottom: 20px; color: var(--gray); font-size: 0.9rem; }
+    .lock-card input {
+      width: 100%; padding: 12px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px;
+      margin-bottom: 15px; font-size: 1rem; text-align: center; outline: none;
+    }
+    .lock-card button { width: 100%; justify-content: center; padding: 12px; }
+    #mensaje-error { color: #e74c3c; display: none; margin-top: 15px; font-size: 0.85rem; font-weight: bold; }
+
+    /* Header */
+    .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 12px; }
+    .title-area h1 { font-size: 1.4rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .title-area p { color: var(--gray); font-size: 0.85rem; margin-top: 2px; }
+
+    .sync-status {
+      font-size: 0.8rem; background: var(--light-gray); color: var(--green); padding: 3px 8px; border-radius: 10px;
+      display: inline-flex; align-items: center; gap: 5px; font-weight: 600; margin-top: 4px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 20px;
+      font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); font-size: 0.9rem; transition: background 0.2s;
+    }
+    .btn-primary:hover { background-color: var(--primary-hover); }
+
+    .btn-sync {
+      background-color: var(--blue); color: white; border: none; padding: 10px 16px; border-radius: 20px;
+      font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); font-size: 0.9rem;
+    }
+
+    .btn-theme {
+      background-color: var(--light-gray); color: var(--text); border: 1px solid var(--border-color); padding: 10px 14px; border-radius: 20px;
+      font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;
+    }
+
+    /* Video Card */
+    .video-card {
+      background: var(--card-bg); border-radius: var(--border-radius); padding: 15px; margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03); text-align: center;
+    }
+    .video-card h3 { font-size: 1rem; color: var(--primary); margin-bottom: 12px; }
+    .video-container { width: 100%; max-width: 480px; margin: 0 auto; border-radius: 8px; overflow: hidden; background: #000; }
+    video { width: 100%; height: auto; display: block; }
+
+    /* Tabs */
+    .tabs-bar { display: flex; gap: 15px; border-bottom: 2px solid var(--border-color); margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+    .tab-item {
+      padding: 8px 4px; color: var(--gray); font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent;
+      margin-bottom: -7px; display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 0.9rem;
+    }
+    .tab-item.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Metrics & Controls */
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 15px; }
+    .metric-card { background: var(--card-bg); padding: 12px; border-radius: var(--border-radius); box-shadow: 0 2px 6px rgba(0,0,0,0.02); text-align: center;}
+    .metric-title { font-size: 0.75rem; color: var(--gray); margin-bottom: 4px; font-weight: 600;}
+    .metric-value { font-size: 1.4rem; font-weight: bold; }
+    .metric-value.total { color: var(--text); } 
+    .metric-value.confirmed { color: var(--green); }
+    .metric-value.pending-confirm { color: var(--orange); } 
+    .metric-value.declined { color: #e74c3c; }
+    .metric-value.adultos { color: var(--purple); }
+    .metric-value.nenes { color: var(--blue); }
+    .metric-value.nenas { color: var(--primary); }
+    .metric-value.enviados { color: var(--blue); }
+    .metric-value.pending-send { color: var(--blue); }
+    .metric-value.consultar { color: var(--purple); }
+
+    .controls-bar {
+      background: var(--card-bg); padding: 12px; border-radius: var(--border-radius); display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .search-input, .filter-select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; font-size: 0.9rem; background: var(--input-bg); color: var(--text); }
+    .search-input { flex: 2; min-width: 180px; } .filter-select { flex: 1; min-width: 140px; }
+    .cel-input { width: 120px; padding: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.85rem; outline: none; }
+    .name-input { width: 100%; min-width: 150px; padding: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.9rem; outline: none; font-weight: 500; }
+
+    /* Tables */
+    .table-container { 
+      background: var(--card-bg); border-radius: var(--border-radius); overflow-x: auto; box-shadow: 0 2px 6px rgba(0,0,0,0.02); 
+      -webkit-overflow-scrolling: touch; transform: translateZ(0); 
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+    th { background: var(--table-header); color: var(--text); padding: 10px 12px; font-weight: 700; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); vertical-align: middle; color: var(--text); }
+    
+    /* Estilos para Drag and Drop */
+    tr[draggable="true"] { cursor: grab; }
+    tr[draggable="true"]:active { cursor: grabbing; }
+    tr.dragging { opacity: 0.4; background: var(--light-gray); }
+
+    .status-badge { padding: 5px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: none; outline: none; cursor: pointer; }
+    .badge-envio { background: rgba(52, 152, 219, 0.15); color: var(--blue); } 
+    .badge-confirmado { background: rgba(46, 204, 113, 0.15); color: var(--green); } 
+    .badge-pendiente { background: rgba(243, 156, 18, 0.15); color: var(--orange); }
+    .badge-no-asistira { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+    .badge-tipo { background: rgba(155, 89, 182, 0.15); color: var(--purple); }
+    
+    .btn-icon { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 3px; opacity: 0.8; color: var(--text); }
+    .btn-icon:hover { opacity: 1; }
+
+    /* Tareas y Organización */
+    .task-category { margin-top: 15px; margin-bottom: 8px; font-weight: bold; color: var(--primary); border-bottom: 2px solid var(--border-color); padding-bottom: 4px; font-size: 1rem; }
+    .check-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); background: var(--card-bg); }
+    .check-item-title { flex: 1; font-weight: 500; font-size: 0.9rem; }
+    .check-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .check-label { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--text); cursor: pointer; background: var(--light-gray); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color); }
+    .check-label input { accent-color: var(--primary); width: 15px; height: 15px; cursor: pointer; }
+    
+    .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-card { background: var(--card-bg); color: var(--text); padding: 20px; border-radius: var(--border-radius); width: 90%; max-width: 350px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .modal-card input { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.95rem; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+  </style>
+</head>
+<body data-theme="light">
+
+  <!-- PANTALLA DE BLOQUEO -->
+  <div id="pantalla-bloqueo">
+    <div class="lock-card">
+        <h2>🔒 Acceso Privado</h2>
+        <p>Ingresa la contraseña para ver la organización del cumple de Jazmín.</p>
+        <input type="password" id="input-password" placeholder="Contraseña" onkeypress="if(event.key==='Enter') verificarPassword()">
+        <button class="btn-primary" onclick="verificarPassword()">Ingresar</button>
+        <p id="mensaje-error">Contraseña incorrecta. Intenta de nuevo.</p>
+    </div>
+  </div>
+
+  <div class="header-container">
+    <div class="title-area">
+      <h1>🎉 Cumple de Jazmín</h1>
+      <p>Panel de Control de Invitaciones y Organización</p>
+      <div id="syncStatus" class="sync-status">🔄 Conectando a la nube...</div>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+      <button class="btn-theme" onclick="toggleTheme()" id="themeBtn" title="Cambiar Modo Claro/Oscuro">🌙</button>
+      <button class="btn-sync" onclick="sincronizarAhora()">🔄 Sincronizar</button>
+      <button class="btn-primary" onclick="openAddModal()">➕ Invitado</button>
+    </div>
+  </div>
+
+  <div class="tabs-bar">
+    <div class="tab-item active" onclick="switchTab('tab-invitados', this)">📑 Invitados (<span id="tabGuestCount">0</span>)</div>
+    <div class="tab-item" onclick="switchTab('tab-video', this)">🎬 Invitación / Video</div>
+    <div class="tab-item" onclick="switchTab('tab-organizacion', this)">📦 Organización</div>
+    <div class="tab-item" onclick="switchTab('tab-compras', this)">🛒 Compras</div>
+    <div class="tab-item" onclick="switchTab('tab-cronograma', this)">⏱️ Cronograma</div>
+  </div>
+
+  <!-- TAB 1: INVITADOS -->
+  <div id="tab-invitados" class="tab-content active">
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="metric-title">Total</div><div class="metric-value total" id="metricTotal">0</div></div>
+      <div class="metric-card"><div class="metric-title">Confirmados</div><div class="metric-value confirmed" id="metricConfirmed">0</div></div>
+      <div class="metric-card"><div class="metric-title">Falta confirmar</div><div class="metric-value pending-confirm" id="metricPendingConfirm">0</div></div>
+      <div class="metric-card"><div class="metric-title">No podrán Asistir</div><div class="metric-value declined" id="metricDeclined">0</div></div>
+      <div class="metric-card"><div class="metric-title">Adultos Conf.</div><div class="metric-value adultos" id="metricAdultos">0</div></div>
+      <div class="metric-card"><div class="metric-title">Nenes Conf.</div><div class="metric-value nenes" id="metricNenes">0</div></div>
+      <div class="metric-card"><div class="metric-title">Nenas Conf.</div><div class="metric-value nenas" id="metricNenas">0</div></div>
+      <div class="metric-card"><div class="metric-title">Enviados</div><div class="metric-value enviados" id="metricEnviados">0</div></div>
+      <div class="metric-card"><div class="metric-title">Por enviar</div><div class="metric-value pending-send" id="metricPorEnviar">0</div></div>
+      <div class="metric-card"><div class="metric-title">Consultar</div><div class="metric-value consultar" id="metricConsultar">0</div></div>
+    </div>
+
+    <div class="controls-bar">
+      <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar nombre o cel..." oninput="debounceSearch()">
+      <select id="filterEstado" class="filter-select" onchange="renderGuests()">
+        <option value="ALL">Todos los Estados</option>
+        <option value="CONFIRMADO">🎉 CONFIRMADO</option>
+        <option value="FALTA CONFIRMAR">⏳ FALTA CONFIRMAR</option>
+        <option value="NO PODRA ASISTIR">❌ NO PODRA ASISTIR</option>
+      </select>
+      <select id="filterEnvio" class="filter-select" onchange="renderGuests()">
+        <option value="ALL">Cualquier Acción</option><option value="ENVIAR">ENVIAR</option><option value="ENVIADO">ENVIADO</option><option value="CONSULTAR">CONSULTAR</option>
+      </select>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>N°</th><th>NOMBRE</th><th>CELULAR</th><th>TIPO</th><th>ENVÍO</th><th>ESTADO</th><th style="text-align:center;">ACCIONES (ORDEN / WPP)</th></tr></thead>
+        <tbody id="guestsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB VIDEO -->
+  <div id="tab-video" class="tab-content">
+    <div class="video-card">
+      <h3>🎬 Video de la Invitación del Cumple de Jazmín</h3>
+      <div class="video-container">
+        <video controls preload="metadata"><source src="WhatsApp Video 2026-10-07 at 15.41.41.mp4" type="video/mp4"></video>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: ORGANIZACIÓN -->
+  <div id="tab-organizacion" class="tab-content">
+    <div class="controls-bar">
+      <select id="newTaskCategory" class="filter-select" style="flex:1;">
+        <option value="Decoración">🎈 Decoración</option>
+        <option value="Comida y Bebida">🍕 Comida y Bebida</option>
+        <option value="Equipamiento">🪑 Equipamiento y Local</option>
+        <option value="Varios">🎁 Varios</option>
+      </select>
+      <input type="text" id="newTaskInput" class="search-input" style="flex:2;" placeholder="✍️ Agregar tarea..." onkeypress="if(event.key==='Enter') addTask()">
+      <button class="btn-primary" onclick="addTask()">Agregar</button>
+    </div>
+    <div class="table-container" style="padding: 10px 15px 15px 15px;">
+      <div id="tasksList"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: COMPRAS -->
+  <div id="tab-compras" class="tab-content">
+    <div class="controls-bar">
+      <select id="newShopCategory" class="filter-select" style="flex:1;">
+        <option value="Carnicería / Pollería">🥩 Carnicería / Pollería</option>
+        <option value="Panadería y Fiambres">🍞 Panadería y Fiambres</option>
+        <option value="Repostería y Almacén">🧂 Repostería y Almacén</option>
+        <option value="Verdulería">🧅 Verdulería</option>
+        <option value="Golosinas">🍬 Golosinas</option>
+        <option value="Decoración y Otros">🛒 Decoración y Otros</option>
+      </select>
+      <input type="text" id="newShopInput" class="search-input" style="flex:2;" placeholder="✍️ Agregar elemento..." onkeypress="if(event.key==='Enter') addShopItem()">
+      <button class="btn-primary" onclick="addShopItem()">Agregar</button>
+    </div>
+    <div class="table-container" style="padding: 10px 15px 15px 15px;">
+      <div id="shoppingList"></div>
+    </div>
+  </div>
+
+  <!-- TAB 4: CRONOGRAMA -->
+  <div id="tab-cronograma" class="tab-content">
+    <div class="controls-bar">
+      <input type="date" id="newCronDate" class="search-input" style="flex:1;" value="2026-10-17">
+      <input type="text" id="newCronTime" class="search-input" style="flex:1;" placeholder="Horario (ej. 14:00)">
+      <input type="text" id="newCronTitle" class="search-input" style="flex:2;" placeholder="Actividad..." onkeypress="if(event.key==='Enter') addCronItem()">
+      <button class="btn-primary" onclick="addCronItem()">Agregar</button>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>FECHA</th><th>HORARIO</th><th>LOGRADO</th><th>NO LOGRADO</th><th>ACTIVIDAD</th><th>NOTAS</th><th style="text-align:center;">ACCIÓN</th></tr></thead>
+        <tbody id="cronogramaTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL NUEVO INVITADO -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal-card">
+      <h3>Nuevo Invitado</h3>
+      <input type="text" id="newGuestName" placeholder="Nombre completo">
+      <input type="text" id="newGuestCel" placeholder="Teléfono">
+      <select id="newGuestTipo" class="filter-select" style="width:100%; margin-bottom:12px; padding:10px;">
+        <option value="ADULTO/A">👤 Adulto/a</option>
+        <option value="NENE">👦 Nene</option>
+        <option value="NENA">👧 Nena</option>
+      </select>
+      <div class="modal-actions">
+        <button onclick="closeAddModal()" style="padding:8px 15px; border:none; background:var(--light-gray); color:var(--text); border-radius:6px; cursor:pointer;">Cancelar</button>
+        <button class="btn-primary" onclick="saveNewGuest()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DB_URL = "https://cumple-jazmin-2026-default-rtdb.firebaseio.com/data.json";
+
+    function toggleTheme() {
+      const body = document.body;
+      const themeBtn = document.getElementById('themeBtn');
+      if (body.getAttribute('data-theme') === 'dark') {
+        body.setAttribute('data-theme', 'light');
+        themeBtn.innerText = '🌙';
+        localStorage.setItem('jazmin_theme', 'light');
+      } else {
+        body.setAttribute('data-theme', 'dark');
+        themeBtn.innerText = '☀️';
+        localStorage.setItem('jazmin_theme', 'dark');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('jazmin_theme') || 'light';
+      document.body.setAttribute('data-theme', savedTheme);
+      document.getElementById('themeBtn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+    });
+
+    function verificarPassword() {
+      if (document.getElementById("input-password").value === "Jazmin2024") {
+          document.getElementById("pantalla-bloqueo").style.display = "none";
+          cargarDatosCloud();
+          setInterval(cargarDatosCloudSilencioso, 10000);
+      } else {
+          document.getElementById("mensaje-error").style.display = "block";
+      }
+    }
+
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active'); el.classList.add('active');
+    }
+
+    const defaultGuests = [
+      {id:1, nombre:"Ines Garcia", cel:"3885191848", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO"},
+      {id:2, nombre:"Juan Jose Jacinto", cel:"3883503008", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO"},
+      {id:3, nombre:"Lucas Joaquin Jacinto", cel:"3886110139", tipo:"NENE", para:"ENVIADO", estado:"CONFIRMADO"},
+      {id:4, nombre:"Facundo Agustin Jacinto", cel:"3884660542", tipo:"NENE", para:"ENVIADO", estado:"CONFIRMADO"},
+      {id:5, nombre:"Miguel Garcia", cel:"3884851312", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:6, nombre:"Mirta Garcia", cel:"3885144021", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:7, nombre:"Rocio Baez", cel:"3884960122", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:8, nombre:"Margarita Garcia", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:9, nombre:"Ariel Ochoa", cel:"3884567693", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:10, nombre:"Señora de Ariel", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:11, nombre:"Hija de Ariel", cel:"Averiguar", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:12, nombre:"Cristian Ochoa", cel:"3884596757", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:13, nombre:"Gaston Ochoa", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:14, nombre:"Señora de Gaston", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:15, nombre:"Mauro Ochoa", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:16, nombre:"Señora de Mauro", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:17, nombre:"Kevin Ochoa", cel:"3884561605", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:18, nombre:"Marta Garcia", cel:"3883352812", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:19, nombre:"Jorge Fernandez", cel:"3884547811", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:20, nombre:"Sebastian Fernandez", cel:"3883460380", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:21, nombre:"Señora de Seba", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:22, nombre:"Benjamin", cel:"Averiguar", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:23, nombre:"Valeria Garcia", cel:"3884691439", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:24, nombre:"Rodrigo Velazquez", cel:"3884620107", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:25, nombre:"Paola Garcia", cel:"3885192057", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:26, nombre:"Fernando Garcia", cel:"3885765826", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:27, nombre:"Ester", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:28, nombre:"Pablo Garcia", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:29, nombre:"Marianela Garcia", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:30, nombre:"Matias Guzman", cel:"3883309588", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:31, nombre:"Manuel Guzman", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:32, nombre:"Luli", cel:"3884682332", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:33, nombre:"Pareja Luli", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:34, nombre:"Claudio Jacinto", cel:"3884562133", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:35, nombre:"Carlos Jacinto", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:36, nombre:"Fabian Jacinto", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:37, nombre:"Señora de Fabian", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:38, nombre:"Beatriz Jacinto", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:39, nombre:"Esposo de Beatriz", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:40, nombre:"Yanina Jacinto", cel:"3885051417", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:41, nombre:"Esposo de Yanina", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:42, nombre:"Hija de Yanina Jacinto", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:43, nombre:"Pamela Jacinto", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:44, nombre:"Hija de Pamela Jacinto", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:45, nombre:"Pablo Zequeiros", cel:"3884535627", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:46, nombre:"Juan Gumiel", cel:"3885072531", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:47, nombre:"Samuel Flores", cel:"3884322865", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:48, nombre:"Eduardo Flores", cel:"3884044966", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:49, nombre:"Compa Ale", cel:"3884474894", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:50, nombre:"Compa Serrano", cel:"3884965757", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:51, nombre:"Ricardo Calizaya", cel:"3885074821", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:52, nombre:"Don Daza", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:53, nombre:"Doña Norma", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:54, nombre:"Thaiel Fernandez", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:55, nombre:"Tiziano Garcia", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:56, nombre:"Bautista Velazques", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:57, nombre:"Dylan Garcia", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:58, nombre:"Cuchy", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:59, nombre:"Samuel Velasquez", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:60, nombre:"Hija menor de Ariel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:61, nombre:"Hija de Matias", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:62, nombre:"Hija menor de Seba", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:63, nombre:"Hijo de Yanina", cel:"-", tipo:"NENE", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:64, nombre:"Hijo de Gaston", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:65, nombre:"Hija Luli", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:66, nombre:"Hija Ricardo", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:67, nombre:"Hija Serrano", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:68, nombre:"Jorge Ríos", cel:"3884047121", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO"},
+      {id:69, nombre:"Estela Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO"},
+      {id:70, nombre:"Laura Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:71, nombre:"Sabrina Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:72, nombre:"Florencia Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:73, nombre:"Ariel Tolaba", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:74, nombre:"Aníbal Gutiérrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:75, nombre:"Mariana Tolaba", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:76, nombre:"Tia Raquel", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:77, nombre:"Tío Jose", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:78, nombre:"Manuel", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:79, nombre:"David", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:80, nombre:"Tío Raul Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:81, nombre:"Tia Yola", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:82, nombre:"Brian Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:83, nombre:"Agustín Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:84, nombre:"Mariela Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:85, nombre:"Sofia Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:86, nombre:"Tío Jorge Castro", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:87, nombre:"Julián Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:88, nombre:"Daniela Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:89, nombre:"Julieta Ríos", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:90, nombre:"Marcia Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:91, nombre:"Elvira Ríos", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:92, nombre:"Silvia Rios", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:93, nombre:"Yolanda Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:94, nombre:"Beatriz Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:95, nombre:"Noemí Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:96, nombre:"Tío Toty", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:97, nombre:"Matías Huamacata", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:98, nombre:"Cecilia Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:99, nombre:"Adrian Pareja Ceci", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:100, nombre:"Hija de Cecilia Castro", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:101, nombre:"Gustavo Castro", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:102, nombre:"ABUELA TELESFORA", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:103, nombre:"Alvaro Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:104, nombre:"Graciela Gutierrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:105, nombre:"Jorge Gutierrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:106, nombre:"Padrino de Mauri Gutiérrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:107, nombre:"Facundo Huaita", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:108, nombre:"Luana Tolaba", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:109, nombre:"Mauricio Gutierrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:110, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:111, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:112, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:113, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:114, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:115, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:116, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:117, nombre:"hija de Mariana Tolaba", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:118, nombre:"hija de Mariana Tolaba", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:119, nombre:"hija de Mariana Tolaba", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:120, nombre:"Sofia Hija de tía Raquel", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:121, nombre:"hija de manuel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:122, nombre:"hija de manuel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:123, nombre:"hija de manuel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:124, nombre:"hijo de leo", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:125, nombre:"Nahir Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:126, nombre:"Belen Miranda", cel:"-", tipo:"ADULTO/A", para:"ENVIADO", estado:"FALTA CONFIRMAR"},
+      {id:127, nombre:"hija de belen", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:128, nombre:"Nancy miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:129, nombre:"hijo de Nancy", cel:"-", tipo:"NENE", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:130, nombre:"Mayra Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:131, nombre:"Luz Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:132, nombre:"agustina Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:133, nombre:"Nicolás Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:134, nombre:"Benjamin Miranda", cel:"-", tipo:"NENE", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:135, nombre:"Ariel Rios", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:136, nombre:"Primo Rodi", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:137, nombre:"Prima Alba", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:138, nombre:"Prima Agustina", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:139, nombre:"Luz Navarro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:140, nombre:"pareja de navarro", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
+      {id:141, nombre:"Franchesca Navarro", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:142, nombre:"trejo", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:143, nombre:"Robert", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:144, nombre:"Pareja de Robert", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:145, nombre:"Hijo 1 de Robert", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
+      {id:146, nombre:"Hijo 2 de Robert", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"}
+    ];
+
+    const defaultTasks = [
+      { id: 1, category: "Decoración", name: "Centro de mesa", done: false, taken: false },
+      { id: 2, category: "Decoración", name: "Banner de 4m x 1,80m (adorno principal)", done: false, taken: false },
+      { id: 3, category: "Decoración", name: "Banner de 1,80m x 90cm (ingreso)", done: false, taken: false },
+      { id: 4, category: "Decoración", name: "Figuras completas (Masha, Oso, erizo, conejo, ardilla, perro, panda, pingüino, lobos) - 1 solo viaje", done: false, taken: false },
+      { id: 5, category: "Decoración", name: "Globos para el arco", done: false, taken: false },
+      { id: 6, category: "Decoración", name: "Globos de Masha", done: false, taken: false },
+      { id: 7, category: "Decoración", name: "Globos de las mariposas", done: false, taken: false },
+      { id: 8, category: "Decoración", name: "Globos de flores", done: false, taken: false },
+      { id: 9, category: "Decoración", name: "Piñata", done: false, taken: false },
+      { id: 16, category: "Equipamiento", name: "Parlantes", done: false, taken: false },
+      { id: 17, category: "Equipamiento", name: "Alargador para enchufar", done: false, taken: false },
+      { id: 18, category: "Equipamiento", name: "Escalera para poner las bolsitas de regalo", done: false, taken: false },
+      { id: 19, category: "Equipamiento", name: "2 sillitas para la parte del ingreso", done: false, taken: false },
+      { id: 20, category: "Varios", name: "Bolsas de regalo", done: false, taken: false }
+    ];
+
+    const defaultShopping = [
+      { id: 1, category: "Carnicería / Pollería", name: "Pollo", bought: false },
+      { id: 2, category: "Carnicería / Pollería", name: "Carne", bought: false },
+      { id: 3, category: "Panadería y Fiambres", name: "Pan de miga", bought: false },
+      { id: 4, category: "Panadería y Fiambres", name: "Prepizza", bought: false },
+      { id: 5, category: "Panadería y Fiambres", name: "Queso", bought: false },
+      { id: 6, category: "Panadería y Fiambres", name: "Mortadela", bought: false },
+      { id: 7, category: "Golosinas", name: "Golosinas para las bolsitas", bought: false },
+      { id: 8, category: "Golosinas", name: "Golosinas para el candy bar", bought: false },
+      { id: 9, category: "Repostería y Almacén", name: "Harina", bought: false },
+      { id: 10, category: "Repostería y Almacén", name: "Dulce de leche", bought: false },
+      { id: 11, category: "Repostería y Almacén", name: "Margarina", bought: false },
+      { id: 12, category: "Repostería y Almacén", name: "Coco rallado", bought: false },
+      { id: 13, category: "Repostería y Almacén", name: "Dulce de membrillo", bought: false },
+      { id: 14, category: "Repostería y Almacén", name: "Maizena", bought: false },
+      { id: 15, category: "Repostería y Almacén", name: "Pan rallado", bought: false },
+      { id: 16, category: "Verdulería", name: "Papa", bought: false },
+      { id: 17, category: "Verdulería", name: "Cebolla", bought: false },
+      { id: 18, category: "Decoración y Otros", name: "Alfombra tipo césped sintético", bought: false }
+    ];
+
+    const defaultCronograma = [
+      { id: 1, date: "2026-10-17", time: "14:00-15:00", title: "Llegada e Instalación", notes: "Montaje de peloteros, mesa principal, Candy Bar y gaseosas.", done: false, failed: false },
+      { id: 2, date: "2026-10-17", time: "15:00-15:30", title: "Inicio & Recepción", notes: "Llegada de invitados. Peloteros habilitados y acceso al Candy Bar.", done: false, failed: false },
+      { id: 3, date: "2026-10-17", time: "15:30-16:30", title: "Payasa - Bloque 1", notes: "Bienvenida, juegos integradores y primera parte de animación.", done: false, failed: false },
+      { id: 4, date: "2026-10-17", time: "16:30-17:15", title: "Pausa: Helado y Comida", notes: "Servido de helado, comida y gaseosas. Uso de peloteros y Candy Bar.", done: false, failed: false },
+      { id: 5, date: "2026-10-17", time: "17:15-18:30", title: "Payasa - Bloque 2 & Cierre", notes: "Juegos de cierre, show central y despedida de la payasa (18:30 h).", done: false, failed: false },
+      { id: 6, date: "2026-10-17", time: "18:30-18:45", title: "La Piñata", notes: "Reunión de todos los chicos para romper la piñata.", done: false, failed: false },
+      { id: 7, date: "2026-10-17", time: "18:45-19:15", title: "Torta & Cumpleaños", notes: "Cantar el feliz cumpleaños, corte de torta y mesa dulce.", done: false, failed: false },
+      { id: 8, date: "2026-10-17", time: "19:15-20:00", title: "Bolsitas & Despedida", notes: "Entrega de bolsitas con golosinas y despedida de invitados hasta las 20:00 h.", done: false, failed: false }
+    ];
+
+    let guests = defaultGuests;
+    let tasks = defaultTasks;
+    let shoppingItems = defaultShopping;
+    let cronograma = defaultCronograma;
+    let searchTimeout = null;
+
+    async function cargarDatosCloud() {
+      const statusEl = document.getElementById('syncStatus');
+      statusEl.innerHTML = "🔄 Sincronizando...";
+      try {
+        const response = await fetch(DB_URL);
+        if (response.ok) {
+          const data = await response.json();
+          if (data) {
+            if (data.guests && data.guests.length > 0) guests = data.guests;
+            if (data.tasks && data.tasks.length > 0) tasks = data.tasks;
+            if (data.shoppingItems && data.shoppingItems.length > 0) shoppingItems = data.shoppingItems;
+            if (data.cronograma && data.cronograma.length > 0) cronograma = data.cronograma;
+          } else {
+            await guardarDatosCloud();
+          }
+          statusEl.innerHTML = "☁️ Sincronizado";
+        }
+      } catch (err) {
+        statusEl.innerHTML = "⚠️ Sin conexión web";
+      }
+      ordenarCronograma();
+      renderAll();
+    }
+
+    async function cargarDatosCloudSilencioso() {
+      if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) {
+        return;
+      }
+      try {
+        const response = await fetch(DB_URL);
+        if (response.ok) {
+          const data = await response.json();
+          if (data) {
+            if (data.guests && data.guests.length > 0) guests = data.guests;
+            if (data.tasks && data.tasks.length > 0) tasks = data.tasks;
+            if (data.shoppingItems && data.shoppingItems.length > 0) shoppingItems = data.shoppingItems;
+            if (data.cronograma && data.cronograma.length > 0) {
+              cronograma = data.cronograma;
+              ordenarCronograma();
+            }
+            renderAll();
+          }
+        }
+      } catch (err) {}
+    }
+
+    async function guardarDatosCloud() {
+      try {
+        await fetch(DB_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ guests, tasks, shoppingItems, cronograma })
+        });
+      } catch (err) {}
+    }
+
+    async function sincronizarAhora() {
+      await cargarDatosCloud();
+      alert("✅ ¡Datos sincronizados!");
+    }
+
+    function renderAll() {
+      renderGuests();
+      renderTasks();
+      renderShopping();
+      renderCronograma();
+    }
+
+    function saveGuests() { guardarDatosCloud(); renderGuests(); }
+    function saveTasks() { guardarDatosCloud(); renderTasks(); }
+    function saveShopping() { guardarDatosCloud(); renderShopping(); }
+    function saveCronograma() { 
+      ordenarCronograma();
+      guardarDatosCloud(); 
+      renderCronograma(); 
+    }
+
+    function ordenarCronograma() {
+      cronograma.sort((a, b) => {
+        const dateA = new Date(a.date || "2026-10-17");
+        const dateB = new Date(b.date || "2026-10-17");
+        if (dateA.getTime() !== dateB.getTime()) {
+          return dateA - dateB;
+        }
+        const timeA = (a.time || "").split('-')[0].split(' a ')[0].trim();
+        const timeB = (b.time || "").split('-')[0].split(' a ')[0].trim();
+        return timeA.localeCompare(timeB);
+      });
+    }
+
+    function debounceSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        renderGuests();
+      }, 250);
+    }
+
+    function renderGuests() {
+      const tbody = document.getElementById('guestsTableBody');
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const fEst = document.getElementById('filterEstado').value;
+      const fEnv = document.getElementById('filterEnvio').value;
+      
+      const filtered = guests.filter(g => {
+        return (g.nombre.toLowerCase().includes(search) || g.cel.includes(search)) &&
+               (fEst === 'ALL' || g.estado === fEst) && (fEnv === 'ALL' || g.para === fEnv);
+      });
+
+      let htmlRows = "";
+      filtered.forEach((g) => {
+        const globalIndex = guests.findIndex(item => item.id === g.id) + 1;
+        const isEditing = g.isEditing || false;
+        let statusBadgeClass = g.estado === 'CONFIRMADO' ? 'badge-confirmado' : (g.estado === 'NO PODRA ASISTIR' ? 'badge-no-asistira' : 'badge-pendiente');
+
+        htmlRows += `<tr draggable="true" ondragstart="drag(event)" ondragover="allowDrop(event)" ondrop="drop(event, ${g.id})" data-id="${g.id}">
+          <td>${globalIndex}</td>
+          <td>
+            ${isEditing ? `<input type="text" class="name-input" id="input-nombre-${g.id}" value="${g.nombre}">` : `<span>${g.nombre}</span>`}
+          </td>
+          <td>
+            ${isEditing ? `<input type="text" class="cel-input" id="input-cel-${g.id}" value="${g.cel}">` : `<span>${g.cel}</span>`}
+          </td>
+          <td>
+            <select class="status-badge badge-tipo" onchange="updateGuest(${g.id}, 'tipo', this.value)">
+              <option value="ADULTO/A" ${g.tipo==='ADULTO/A'?'selected':''}>👤 Adulto/a</option>
+              <option value="NENE" ${g.tipo==='NENE'?'selected':''}>👦 Nene</option>
+              <option value="NENA" ${g.tipo==='NENA'?'selected':''}>👧 Nena</option>
+            </select>
+          </td>
+          <td><select class="status-badge badge-envio" onchange="updateGuest(${g.id}, 'para', this.value)">
+            <option value="ENVIAR" ${g.para==='ENVIAR'?'selected':''}>📬 ENVIAR</option>
+            <option value="ENVIADO" ${g.para==='ENVIADO'?'selected':''}>✅ ENVIADO</option>
+            <option value="CONSULTAR" ${g.para==='CONSULTAR'?'selected':''}>❓ CONSULTAR</option>
+          </select></td>
+          <td><select class="status-badge ${statusBadgeClass}" onchange="updateGuest(${g.id}, 'estado', this.value)">
+            <option value="CONFIRMADO" ${g.estado==='CONFIRMADO'?'selected':''}>🎉 CONFIRMADO</option>
+            <option value="FALTA CONFIRMAR" ${g.estado==='FALTA CONFIRMAR'?'selected':''}>⏳ FALTA CONFIRMAR</option>
+            <option value="NO PODRA ASISTIR" ${g.estado==='NO PODRA ASISTIR'?'selected':''}>❌ NO PODRA ASISTIR</option>
+          </select></td>
+          <td style="text-align:center; white-space:nowrap;">
+            ${isEditing ? `
+              <button class="btn-icon" onclick="saveEditGuest(${g.id})" title="Guardar cambios" style="color:var(--green);">💾</button>
+              <button class="btn-icon" onclick="cancelEditGuest(${g.id})" title="Cancelar">❌</button>
+            ` : `
+              <button class="btn-icon" onclick="toggleEditGuest(${g.id})" title="Editar nombre y celular">✏️</button>
+              <button class="btn-icon" onclick="moverInvitado(${g.id}, -1)" title="Mover arriba">⬆️</button>
+              <button class="btn-icon" onclick="moverInvitado(${g.id}, 1)" title="Mover abajo">⬇️</button>
+              <button class="btn-icon" onclick="sendWs(${g.id})" title="WhatsApp" style="margin-left:4px;">💬</button>
+            `}
+            <button class="btn-icon" onclick="deleteGuest(${g.id})" title="Borrar" style="color:#e74c3c;">🗑️</button>
+          </td>
+        </tr>`;
+      });
+
+      tbody.innerHTML = htmlRows;
+      
+      document.getElementById('metricTotal').innerText = guests.length; 
+      document.getElementById('tabGuestCount').innerText = guests.length;
+      document.getElementById('metricConfirmed').innerText = guests.filter(g => g.estado === 'CONFIRMADO').length;
+      document.getElementById('metricPendingConfirm').innerText = guests.filter(g => g.estado === 'FALTA CONFIRMAR').length;
+      document.getElementById('metricDeclined').innerText = guests.filter(g => g.estado === 'NO PODRA ASISTIR').length;
+      document.getElementById('metricAdultos').innerText = guests.filter(g => g.estado === 'CONFIRMADO' && (!g.tipo || g.tipo === 'ADULTO/A')).length;
+      document.getElementById('metricNenes').innerText = guests.filter(g => g.estado === 'CONFIRMADO' && g.tipo === 'NENE').length;
+      document.getElementById('metricNenas').innerText = guests.filter(g => g.estado === 'CONFIRMADO' && g.tipo === 'NENA').length;
+      document.getElementById('metricEnviados').innerText = guests.filter(g => g.para === 'ENVIADO').length;
+      document.getElementById('metricPorEnviar').innerText = guests.filter(g => g.para === 'ENVIAR').length;
+      document.getElementById('metricConsultar').innerText = guests.filter(g => g.para === 'CONSULTAR').length;
+    }
+
+    function toggleEditGuest(id) {
+      guests.forEach(g => { if(g.id === id) g.isEditing = true; else g.isEditing = false; });
+      renderGuests();
+    }
+
+    function saveEditGuest(id) {
+      const g = guests.find(item => item.id === id);
+      if (g) {
+        const nombreInput = document.getElementById(`input-nombre-${id}`);
+        const celInput = document.getElementById(`input-cel-${id}`);
+        if (nombreInput) g.nombre = nombreInput.value.trim() || g.nombre;
+        if (celInput) g.cel = celInput.value.trim() || 'Averiguar';
+        g.isEditing = false;
+        saveGuests();
+      }
+    }
+
+    function cancelEditGuest(id) {
+      const g = guests.find(item => item.id === id);
+      if (g) {
+        g.isEditing = false;
+        renderGuests();
+      }
+    }
+
+    function drag(ev) {
+      ev.dataTransfer.setData("text/plain", ev.currentTarget.dataset.id);
+    }
+
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+
+    function drop(ev, targetId) {
+      ev.preventDefault();
+      const sourceId = parseInt(ev.dataTransfer.getData("text/plain"));
+      if (isNaN(sourceId) || sourceId === targetId) return;
+
+      const sourceIndex = guests.findIndex(g => g.id === sourceId);
+      const targetIndex = guests.findIndex(g => g.id === targetId);
+      if (sourceIndex === -1 || targetIndex === -1) return;
+
+      const [movedItem] = guests.splice(sourceIndex, 1);
+      guests.splice(targetIndex, 0, movedItem);
+
+      saveGuests();
+    }
+
+    function moverInvitado(id, direccion) {
+      const index = guests.findIndex(g => g.id === id);
+      if (index === -1) return;
+      const targetIndex = index + direccion;
+      if (targetIndex < 0 || targetIndex >= guests.length) return;
+
+      const temp = guests[index];
+      guests[index] = guests[targetIndex];
+      guests[targetIndex] = temp;
+
+      saveGuests();
+    }
+
+    function updateGuest(id, key, val) { const g = guests.find(item => item.id === id); if(g){ g[key] = val; saveGuests(); } }
+    function deleteGuest(id) { if(confirm("¿Eliminar invitado?")) { guests = guests.filter(g => g.id !== id); saveGuests(); } }
+    
+    async function sendWs(id) {
+      const g = guests.find(item => item.id === id); if(!g) return;
+      const fullCel = g.cel.replace(/\D/g, '').length === 10 ? '549' + g.cel.replace(/\D/g, '') : g.cel.replace(/\D/g, '');
+      const textMsg = `🎉 ¡Hola ${g.nombre}! Soy Jazmín 🎂✨\n¡Llegó el momento de festejar mis 2 añitos! 🎈🎁\nSe viene una tarde llena de juegos, risas y mucha diversión, ¡y me encantaría que vengas a celebrar conmigo y mi familia! 🎊\n\n🗓️ ¿Cuándo? Sábado 17/10 a las 15:00 hs\n📍 ¿Dónde? Podés ver la ubicación aquí:\nhttps://maps.app.goo.gl/yFUNJTPMJ7o8tpbc6\n\n✨ ¡Te espero para compartir este día tan lindo! 🥳💕\n📲 Por favor confirmá tu asistencia al:\n📞 3884978289 (Papá) | 📞 3885988246 (Mamá)`;
+
+      g.para = 'ENVIADO'; saveGuests();
+      const nombreVideo = "WhatsApp Video 2026-10-07 at 15.41.41.mp4";
+
+      if (navigator.canShare && navigator.share) {
+        try {
+          const response = await fetch(nombreVideo);
+          const blob = await response.blob();
+          const file = new File([blob], "Invitacion_Jazmin.mp4", { type: "video/mp4" });
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], text: textMsg, title: "Invitación Cumple de Jazmín" });
+            return;
+          }
+        } catch (err) {}
+      }
+      window.open(`https://api.whatsapp.com/send?phone=${fullCel}&text=${encodeURIComponent(textMsg)}`, '_blank');
+    }
+
+    function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+    function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
+    function saveNewGuest() {
+      const name = document.getElementById('newGuestName').value.trim(); 
+      const cel = document.getElementById('newGuestCel').value.trim();
+      const tipo = document.getElementById('newGuestTipo').value;
+      if(!name) return;
+      guests.push({ id: guests.length ? Math.max(...guests.map(g => g.id)) + 1 : 1, nombre: name, cel: cel || 'Averiguar', tipo: tipo, para: 'ENVIAR', estado: 'FALTA CONFIRMAR' });
+      saveGuests(); closeAddModal(); 
+      document.getElementById('newGuestName').value = ''; 
+      document.getElementById('newGuestCel').value = '';
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('tasksList');
+      container.innerHTML = '';
+      ["Decoración", "Comida y Bebida", "Equipamiento", "Varios"].forEach(cat => {
+        const catTasks = tasks.filter(t => t.category === cat);
+        if(catTasks.length === 0) return;
+        container.innerHTML += `<div class="task-category">${cat}</div>`;
+        catTasks.forEach(t => {
+          container.innerHTML += `
+            <div class="check-item">
+              <span class="check-item-title" style="${t.done && t.taken ? 'text-decoration:line-through; opacity:0.5;' : ''}">${t.name}</span>
+              <div class="check-group">
+                <label class="check-label"><input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id}, 'done')">✔️ Realizado</label>
+                <label class="check-label"><input type="checkbox" ${t.taken ? 'checked' : ''} onchange="toggleTask(${t.id}, 'taken')">📍 Local</label>
+                <button class="btn-icon" onclick="deleteTask(${t.id})" style="color:#e74c3c;">✖</button>
+              </div>
+            </div>`;
+        });
+      });
+    }
+
+    function toggleTask(id, type) { const t = tasks.find(x => x.id === id); if(t) { t[type] = !t[type]; saveTasks(); } }
+    function addTask() {
+      const input = document.getElementById('newTaskInput');
+      const cat = document.getElementById('newTaskCategory').value;
+      if(!input.value.trim()) return;
+      tasks.push({ id: Date.now(), category: cat, name: input.value.trim(), done: false, taken: false });
+      input.value = ''; saveTasks();
+    }
+    function deleteTask(id) { if(confirm("¿Eliminar?")) { tasks = tasks.filter(t => t.id !== id); saveTasks(); } }
+
+    function renderShopping() {
+      const container = document.getElementById('shoppingList');
+      container.innerHTML = '';
+      ["Carnicería / Pollería", "Panadería y Fiambres", "Repostería y Almacén", "Verdulería", "Golosinas", "Decoración y Otros"].forEach(cat => {
+        const catItems = shoppingItems.filter(t => t.category === cat);
+        if(catItems.length === 0) return;
+        container.innerHTML += `<div class="task-category">${cat}</div>`;
+        catItems.forEach(t => {
+          container.innerHTML += `
+            <div class="check-item">
+              <span class="check-item-title" style="${t.bought ? 'text-decoration:line-through; opacity:0.5;' : ''}">${t.name}</span>
+              <div class="check-group">
+                <label class="check-label"><input type="checkbox" ${t.bought ? 'checked' : ''} onchange="toggleShopItem(${t.id})">✔️ Comprado</label>
+                <button class="btn-icon" onclick="deleteShopItem(${t.id})" style="color:#e74c3c;">✖</button>
+              </div>
+            </div>`;
+        });
+      });
+    }
+
+    function toggleShopItem(id) { const t = shoppingItems.find(x => x.id === id); if(t) { t.bought = !t.bought; saveShopping(); } }
+    function addShopItem() {
+      const input = document.getElementById('newShopInput');
+      const cat = document.getElementById('newShopCategory').value;
+      if(!input.value.trim()) return;
+      shoppingItems.push({ id: Date.now(), category: cat, name: input.value.trim(), bought: false });
+      input.value = ''; saveShopping();
+    }
+    function deleteShopItem(id) { if(confirm("¿Eliminar?")) { shoppingItems = shoppingItems.filter(t => t.id !== id); saveShopping(); } }
+
+    function renderCronograma() {
+      const tbody = document.getElementById('cronogramaTableBody');
+      tbody.innerHTML = '';
+      let lastDate = "";
+      
+      cronograma.forEach(c => {
+        if (c.date !== lastDate) {
+          lastDate = c.date;
+          tbody.innerHTML += `<tr><td colspan="7" style="background:var(--table-header); color:var(--primary); font-weight:bold; padding:10px 12px; font-size:0.95rem; border-bottom:2px solid var(--border-color);">📅 Día: ${c.date}</td></tr>`;
+        }
+
+        let rowStyle = '';
+        if (c.done) rowStyle = 'opacity: 0.5;';
+        if (c.failed) rowStyle = 'opacity: 0.5;';
+
+        tbody.innerHTML += `
+          <tr style="${rowStyle}">
+            <td><input type="date" class="cel-input" style="width:130px;" value="${c.date || '2026-10-17'}" onchange="updateCron(${c.id}, 'date', this.value)"></td>
+            <td><input type="text" class="cel-input" style="width:90px;" value="${c.time}" onchange="updateCron(${c.id}, 'time', this.value)"></td>
+            <td style="text-align:center;"><input type="checkbox" style="width:18px; height:18px; cursor:pointer; accent-color:var(--green);" ${c.done ? 'checked' : ''} onchange="updateCron(${c.id}, 'done', this.checked)"></td>
+            <td style="text-align:center;"><input type="checkbox" style="width:18px; height:18px; cursor:pointer; accent-color:#e74c3c;" ${c.failed ? 'checked' : ''} onchange="updateCron(${c.id}, 'failed', this.checked)"></td>
+            <td><input type="text" class="search-input" style="width:100%; ${c.done ? 'text-decoration:line-through;' : ''} ${c.failed ? 'text-decoration:line-through; color:#e74c3c;' : ''}" value="${c.title}" onchange="updateCron(${c.id}, 'title', this.value)"></td>
+            <td><input type="text" class="search-input" style="width:100%;" value="${c.notes}" onchange="updateCron(${c.id}, 'notes', this.value)"></td>
+            <td style="text-align:center;"><button class="btn-icon" onclick="deleteCron(${c.id})" style="color:#e74c3c;">🗑️</button></td>
+          </tr>`;
+      });
+    }
+
+    function updateCron(id, key, val) { 
+      const c = cronograma.find(x => x.id === id); 
+      if(c) { 
+        c[key] = val; 
+        saveCronograma(); 
+      } 
+    }
+
+    function addCronItem() {
+      const dateInput = document.getElementById('newCronDate');
+      const timeInput = document.getElementById('newCronTime');
+      const titleInput = document.getElementById('newCronTitle');
+      if(!titleInput.value.trim()) return;
+      cronograma.push({ id: Date.now(), date: dateInput.value || '2026-10-17', time: timeInput.value.trim() || 'Hora', title: titleInput.value.trim(), notes: '', done: false, failed: false });
+      timeInput.value = ''; titleInput.value = ''; saveCronograma();
+    }
+
+    function deleteCron(id) { if(confirm("¿Eliminar?")) { cronograma = cronograma.filter(c => c.id !== id); saveCronograma(); } }
+  </script>
+</body>
+</html>
