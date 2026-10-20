@@ -8,33 +8,21 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Ocultar el menú superior y el pie de página nativo de Streamlit para que luzca como una app web independiente
+# Ocultar el menú superior y el pie de página nativo de Streamlit
 hide_streamlit_style = """
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     .block-container {
-        padding-top: 0rem !important;
-        padding-bottom: 0rem !important;
-        padding-left: 0rem !important;
-        padding-right: 0rem !important;
+        padding: 0rem !important;
         max-width: 100% !important;
-    }
-    iframe {
-        width: 100vw !important;
-        height: 100vh !important;
-        border: none !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        z-index: 999999 !important;
     }
     </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# Tu aplicación HTML completa incrustada a pantalla completa real
+# Código HTML completo con la nueva columna de Asistencia Real
 html_code = """<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -147,7 +135,7 @@ html_code = """<!DOCTYPE html>
  .tab-content.active { display: block; }
 
  /* Metrics & Controls */
- .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 15px; }
+ .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 15px; }
  .metric-card { background: var(--card-bg); padding: 12px; border-radius: var(--border-radius); box-shadow: 0 2px 6px rgba(0,0,0,0.02); text-align: center;}
  .metric-title { font-size: 0.75rem; color: var(--gray); margin-bottom: 4px; font-weight: 600;}
  .metric-value { font-size: 1.4rem; font-weight: bold; }
@@ -158,15 +146,14 @@ html_code = """<!DOCTYPE html>
  .metric-value.adultos { color: var(--purple); }
  .metric-value.nenes { color: var(--blue); }
  .metric-value.nenas { color: var(--primary); }
- .metric-value.enviados { color: var(--blue); }
- .metric-value.pending-send { color: var(--blue); }
- .metric-value.consultar { color: var(--purple); }
+ .metric-value.asistio { color: var(--green); }
+ .metric-value.no-asistio { color: #e74c3c; }
 
  .controls-bar {
  background: var(--card-bg); padding: 12px; border-radius: var(--border-radius); display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
  }
  .search-input, .filter-select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; font-size: 0.9rem; background: var(--input-bg); color: var(--text); }
- .search-input { flex: 2; min-width: 180px; } .filter-select { flex: 1; min-width: 140px; }
+ .search-input { flex: 2; min-width: 180px; } .filter-select { flex: 1; min-width: 130px; }
  .cel-input { width: 120px; padding: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.85rem; outline: none; }
  .name-input { width: 100%; min-width: 150px; padding: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.9rem; outline: none; font-weight: 500; }
 
@@ -190,6 +177,8 @@ html_code = """<!DOCTYPE html>
  .badge-pendiente { background: rgba(243, 156, 18, 0.15); color: var(--orange); }
  .badge-no-asistira { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
  .badge-tipo { background: rgba(155, 89, 182, 0.15); color: var(--purple); }
+ .badge-fue { background: rgba(46, 204, 113, 0.2); color: var(--green); }
+ .badge-no-fue { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
  
  .btn-icon { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 3px; opacity: 0.8; color: var(--text); }
  .btn-icon:hover { opacity: 1; }
@@ -197,7 +186,7 @@ html_code = """<!DOCTYPE html>
  /* Tareas y Organización */
  .task-category { margin-top: 15px; margin-bottom: 8px; font-weight: bold; color: var(--primary); border-bottom: 2px solid var(--border-color); padding-bottom: 4px; font-size: 1rem; }
  .check-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); background: var(--card-bg); }
- .check-item-title { flex: 1; font-weight: 500; font-size: 0.90rem; }
+ .check-item-title { flex: 1; font-weight: 500; font-size: 0.9rem; }
  .check-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
  .check-label { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--text); cursor: pointer; background: var(--light-gray); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color); }
  .check-label input { accent-color: var(--primary); width: 15px; height: 15px; cursor: pointer; }
@@ -248,30 +237,29 @@ html_code = """<!DOCTYPE html>
  <div class="metric-card"><div class="metric-title">Total</div><div class="metric-value total" id="metricTotal">0</div></div>
  <div class="metric-card"><div class="metric-title">Confirmados</div><div class="metric-value confirmed" id="metricConfirmed">0</div></div>
  <div class="metric-card"><div class="metric-title">Falta confirmar</div><div class="metric-value pending-confirm" id="metricPendingConfirm">0</div></div>
- <div class="metric-card"><div class="metric-title">No podrán Asistir</div><div class="metric-value declined" id="metricDeclined">0</div></div>
- <div class="metric-card"><div class="metric-title">Adultos Conf.</div><div class="metric-value adultos" id="metricAdultos">0</div></div>
- <div class="metric-card"><div class="metric-title">Nenes Conf.</div><div class="metric-value nenes" id="metricNenes">0</div></div>
- <div class="metric-card"><div class="metric-title">Nenas Conf.</div><div class="metric-value nenas" id="metricNenas">0</div></div>
- <div class="metric-card"><div class="metric-title">Enviados</div><div class="metric-value enviados" id="metricEnviados">0</div></div>
- <div class="metric-card"><div class="metric-title">Por enviar</div><div class="metric-value pending-send" id="metricPorEnviar">0</div></div>
- <div class="metric-card"><div class="metric-title">Consultar</div><div class="metric-value consultar" id="metricConsultar">0</div></div>
+ <div class="metric-card"><div class="metric-title">No asistirán</div><div class="metric-value declined" id="metricDeclined">0</div></div>
+ <div class="metric-card"><div class="metric-title">Asistieron (FUE)</div><div class="metric-value asistio" id="metricFue">0</div></div>
+ <div class="metric-card"><div class="metric-title">No asistieron</div><div class="metric-value no-asistio" id="metricNoFue">0</div></div>
  </div>
 
  <div class="controls-bar">
  <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar nombre o cel..." oninput="debounceSearch()">
  <select id="filterEstado" class="filter-select" onchange="renderGuests()">
- <option value="ALL">Todos los Estados</option>
+ <option value="ALL">Estado (Todos)</option>
  <option value="CONFIRMADO">🎉 CONFIRMADO</option>
  <option value="FALTA CONFIRMAR">⏳ FALTA CONFIRMAR</option>
  <option value="NO PODRA ASISTIR">❌ NO PODRA ASISTIR</option>
  </select>
- <select id="filterEnvio" class="filter-select" onchange="renderGuests()">
- <option value="ALL">Cualquier Acción</option><option value="ENVIAR">ENVIAR</option><option value="ENVIADO">ENVIADO</option><option value="CONSULTAR">CONSULTAR</option>
+ <select id="filterAsistencia" class="filter-select" onchange="renderGuests()">
+ <option value="ALL">Asistencia (Todos)</option>
+ <option value="FUE">✅ FUE (Asistió)</option>
+ <option value="NO FUE">❌ NO FUE</option>
+ <option value="PENDIENTE">⏳ PENDIENTE</option>
  </select>
  </div>
  <div class="table-container">
  <table>
- <thead><tr><th>N°</th><th>NOMBRE</th><th>CELULAR</th><th>TIPO</th><th>ENVÍO</th><th>ESTADO</th><th style="text-align:center;">ACCIONES (ORDEN / WPP)</th></tr></thead>
+ <thead><tr><th>N°</th><th>NOMBRE</th><th>CELULAR</th><th>TIPO</th><th>ESTADO</th><th>ASISTENCIA REAL</th><th style="text-align:center;">ACCIONES</th></tr></thead>
  <tbody id="guestsTableBody"></tbody>
  </table>
  </div>
@@ -397,152 +385,152 @@ html_code = """<!DOCTYPE html>
  }
 
  const defaultGuests = [
- {id:1, nombre:"Ines Garcia", cel:"3885191848", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO"},
- {id:2, nombre:"Juan Jose Jacinto", cel:"3883503008", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO"},
- {id:3, nombre:"Lucas Joaquin Jacinto", cel:"3886110139", tipo:"NENE", para:"ENVIADO", estado:"CONFIRMADO"},
- {id:4, nombre:"Facundo Agustin Jacinto", cel:"3884660542", tipo:"NENE", para:"ENVIADO", estado:"CONFIRMADO"},
- {id:5, nombre:"Miguel Garcia", cel:"3884851312", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:6, nombre:"Mirta Garcia", cel:"3885144021", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:7, nombre:"Rocio Baez", cel:"3884960122", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:8, nombre:"Margarita Garcia", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:9, nombre:"Ariel Ochoa", cel:"3884567693", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:10, nombre:"Señora de Ariel", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:11, nombre:"Hija de Ariel", cel:"Averiguar", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:12, nombre:"Cristian Ochoa", cel:"3884596757", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:13, nombre:"Gaston Ochoa", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:14, nombre:"Señora de Gaston", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:15, nombre:"Mauro Ochoa", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:16, nombre:"Señora de Mauro", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:17, nombre:"Kevin Ochoa", cel:"3884561605", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:18, nombre:"Marta Garcia", cel:"3883352812", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:19, nombre:"Jorge Fernandez", cel:"3884547811", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:20, nombre:"Sebastian Fernandez", cel:"3883460380", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:21, nombre:"Señora de Seba", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:22, nombre:"Benjamin", cel:"Averiguar", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:23, nombre:"Valeria Garcia", cel:"3884691439", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:24, nombre:"Rodrigo Velazquez", cel:"3884620107", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:25, nombre:"Paola Garcia", cel:"3885192057", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:26, nombre:"Fernando Garcia", cel:"3885765826", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:27, nombre:"Ester", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:28, nombre:"Pablo Garcia", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:29, nombre:"Marianela Garcia", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:30, nombre:"Matias Guzman", cel:"3883309588", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:31, nombre:"Manuel Guzman", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:32, nombre:"Luli", cel:"3884682332", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:33, nombre:"Pareja Luli", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:34, nombre:"Claudio Jacinto", cel:"3884562133", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:35, nombre:"Carlos Jacinto", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:36, nombre:"Fabian Jacinto", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:37, nombre:"Señora de Fabian", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:38, nombre:"Beatriz Jacinto", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:39, nombre:"Esposo de Beatriz", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:40, nombre:"Yanina Jacinto", cel:"3885051417", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:41, nombre:"Esposo de Yanina", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:42, nombre:"Hija de Yanina Jacinto", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:43, nombre:"Pamela Jacinto", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:44, nombre:"Hija de Pamela Jacinto", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:45, nombre:"Pablo Zequeiros", cel:"3884535627", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:46, nombre:"Juan Gumiel", cel:"3885072531", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:47, nombre:"Samuel Flores", cel:"3884322865", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:48, nombre:"Eduardo Flores", cel:"3884044966", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:49, nombre:"Compa Ale", cel:"3884474894", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:50, nombre:"Compa Serrano", cel:"3884965757", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:51, nombre:"Ricardo Calizaya", cel:"3885074821", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:52, nombre:"Don Daza", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:53, nombre:"Doña Norma", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:54, nombre:"Thaiel Fernandez", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:55, nombre:"Tiziano Garcia", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:56, nombre:"Bautista Velazques", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:57, nombre:"Dylan Garcia", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:58, nombre:"Cuchy", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:59, nombre:"Samuel Velasquez", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:60, nombre:"Hija menor de Ariel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:61, nombre:"Hija de Matias", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:62, nombre:"Hija menor de Seba", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:63, nombre:"Hijo de Yanina", cel:"-", tipo:"NENE", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:64, nombre:"Hijo de Gaston", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:65, nombre:"Hija Luli", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:66, nombre:"Hija Ricardo", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:67, nombre:"Hija Serrano", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:68, nombre:"Jorge Ríos", cel:"3884047121", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO"},
- {id:69, nombre:"Estela Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO"},
- {id:70, nombre:"Laura Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:71, nombre:"Sabrina Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:72, nombre:"Florencia Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:73, nombre:"Ariel Tolaba", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:74, nombre:"Aníbal Gutiérrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:75, nombre:"Mariana Tolaba", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:76, nombre:"Tia Raquel", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:77, nombre:"Tío Jose", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:78, nombre:"Manuel", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:79, nombre:"David", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:80, nombre:"Tío Raul Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:81, nombre:"Tia Yola", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:82, nombre:"Brian Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:83, nombre:"Agustín Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:84, nombre:"Mariela Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:85, nombre:"Sofia Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:86, nombre:"Tío Jorge Castro", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:87, nombre:"Julián Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:88, nombre:"Daniela Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:89, nombre:"Julieta Ríos", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:90, nombre:"Marcia Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:91, nombre:"Elvira Ríos", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:92, nombre:"Silvia Rios", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:93, nombre:"Yolanda Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:94, nombre:"Beatriz Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:95, nombre:"Noemí Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:96, nombre:"Tío Toty", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:97, nombre:"Matías Huamacata", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:98, nombre:"Cecilia Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:99, nombre:"Adrian Pareja Ceci", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:100, nombre:"Hija de Cecilia Castro", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:101, nombre:"Gustavo Castro", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:102, nombre:"ABUELA TELESFORA", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:103, nombre:"Alvaro Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:104, nombre:"Graciela Gutierrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:105, nombre:"Jorge Gutierrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:106, nombre:"Padrino de Mauri Gutiérrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:107, nombre:"Facundo Huaita", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:108, nombre:"Luana Tolaba", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:109, nombre:"Mauricio Gutierrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:110, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:111, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:112, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:113, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:114, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:115, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:116, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:117, nombre:"hija de Mariana Tolaba", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:118, nombre:"hija de Mariana Tolaba", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:119, nombre:"hija de Mariana Tolaba", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:120, nombre:"Sofia Hija de tía Raquel", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:121, nombre:"hija de manuel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:122, nombre:"hija de manuel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:123, nombre:"hija de manuel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:124, nombre:"hijo de leo", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:125, nombre:"Nahir Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:126, nombre:"Belen Miranda", cel:"-", tipo:"ADULTO/A", para:"ENVIADO", estado:"FALTA CONFIRMAR"},
- {id:127, nombre:"hija de belen", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:128, nombre:"Nancy miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:129, nombre:"hijo de Nancy", cel:"-", tipo:"NENE", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:130, nombre:"Mayra Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:131, nombre:"Luz Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:132, nombre:"agustina Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:133, nombre:"Nicolás Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:134, nombre:"Benjamin Miranda", cel:"-", tipo:"NENE", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:135, nombre:"Ariel Rios", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:136, nombre:"Primo Rodi", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:137, nombre:"Prima Alba", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:138, nombre:"Prima Agustina", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:139, nombre:"Luz Navarro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:140, nombre:"pareja de navarro", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR"},
- {id:141, nombre:"Franchesca Navarro", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:142, nombre:"trejo", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:143, nombre:"Robert", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:144, nombre:"Pareja de Robert", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:145, nombre:"Hijo 1 de Robert", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"},
- {id:146, nombre:"Hijo 2 de Robert", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR"}
+ {id:1, nombre:"Ines Garcia", cel:"3885191848", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO", asistencia:"PENDIENTE"},
+ {id:2, nombre:"Juan Jose Jacinto", cel:"3883503008", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO", asistencia:"PENDIENTE"},
+ {id:3, nombre:"Lucas Joaquin Jacinto", cel:"3886110139", tipo:"NENE", para:"ENVIADO", estado:"CONFIRMADO", asistencia:"PENDIENTE"},
+ {id:4, nombre:"Facundo Agustin Jacinto", cel:"3884660542", tipo:"NENE", para:"ENVIADO", estado:"CONFIRMADO", asistencia:"PENDIENTE"},
+ {id:5, nombre:"Miguel Garcia", cel:"3884851312", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:6, nombre:"Mirta Garcia", cel:"3885144021", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:7, nombre:"Rocio Baez", cel:"3884960122", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:8, nombre:"Margarita Garcia", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:9, nombre:"Ariel Ochoa", cel:"3884567693", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:10, nombre:"Señora de Ariel", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:11, nombre:"Hija de Ariel", cel:"Averiguar", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:12, nombre:"Cristian Ochoa", cel:"3884596757", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:13, nombre:"Gaston Ochoa", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:14, nombre:"Señora de Gaston", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:15, nombre:"Mauro Ochoa", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:16, nombre:"Señora de Mauro", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:17, nombre:"Kevin Ochoa", cel:"3884561605", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:18, nombre:"Marta Garcia", cel:"3883352812", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:19, nombre:"Jorge Fernandez", cel:"3884547811", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:20, nombre:"Sebastian Fernandez", cel:"3883460380", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:21, nombre:"Señora de Seba", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:22, nombre:"Benjamin", cel:"Averiguar", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:23, nombre:"Valeria Garcia", cel:"3884691439", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:24, nombre:"Rodrigo Velazquez", cel:"3884620107", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:25, nombre:"Paola Garcia", cel:"3885192057", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:26, nombre:"Fernando Garcia", cel:"3885765826", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:27, nombre:"Ester", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:28, nombre:"Pablo Garcia", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:29, nombre:"Marianela Garcia", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:30, nombre:"Matias Guzman", cel:"3883309588", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:31, nombre:"Manuel Guzman", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:32, nombre:"Luli", cel:"3884682332", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:33, nombre:"Pareja Luli", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:34, nombre:"Claudio Jacinto", cel:"3884562133", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:35, nombre:"Carlos Jacinto", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:36, nombre:"Fabian Jacinto", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:37, nombre:"Señora de Fabian", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:38, nombre:"Beatriz Jacinto", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:39, nombre:"Esposo de Beatriz", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:40, nombre:"Yanina Jacinto", cel:"3885051417", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:41, nombre:"Esposo de Yanina", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:42, nombre:"Hija de Yanina Jacinto", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:43, nombre:"Pamela Jacinto", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:44, nombre:"Hija de Pamela Jacinto", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:45, nombre:"Pablo Zequeiros", cel:"3884535627", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:46, nombre:"Juan Gumiel", cel:"3885072531", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:47, nombre:"Samuel Flores", cel:"3884322865", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:48, nombre:"Eduardo Flores", cel:"3884044966", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:49, nombre:"Compa Ale", cel:"3884474894", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:50, nombre:"Compa Serrano", cel:"3884965757", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:51, nombre:"Ricardo Calizaya", cel:"3885074821", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:52, nombre:"Don Daza", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:53, nombre:"Doña Norma", cel:"Averiguar", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:54, nombre:"Thaiel Fernandez", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:55, nombre:"Tiziano Garcia", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:56, nombre:"Bautista Velazques", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:57, nombre:"Dylan Garcia", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:58, nombre:"Cuchy", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:59, nombre:"Samuel Velasquez", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:60, nombre:"Hija menor de Ariel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:61, nombre:"Hija de Matias", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:62, nombre:"Hija menor de Seba", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:63, nombre:"Hijo de Yanina", cel:"-", tipo:"NENE", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:64, nombre:"Hijo de Gaston", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:65, nombre:"Hija Luli", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:66, nombre:"Hija Ricardo", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:67, nombre:"Hija Serrano", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:68, nombre:"Jorge Ríos", cel:"3884047121", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO", asistencia:"PENDIENTE"},
+ {id:69, nombre:"Estela Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIADO", estado:"CONFIRMADO", asistencia:"PENDIENTE"},
+ {id:70, nombre:"Laura Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:71, nombre:"Sabrina Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:72, nombre:"Florencia Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:73, nombre:"Ariel Tolaba", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:74, nombre:"Aníbal Gutiérrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:75, nombre:"Mariana Tolaba", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:76, nombre:"Tia Raquel", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:77, nombre:"Tío Jose", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:78, nombre:"Manuel", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:79, nombre:"David", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:80, nombre:"Tío Raul Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:81, nombre:"Tia Yola", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:82, nombre:"Brian Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:83, nombre:"Agustín Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:84, nombre:"Mariela Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:85, nombre:"Sofia Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:86, nombre:"Tío Jorge Castro", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:87, nombre:"Julián Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:88, nombre:"Daniela Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:89, nombre:"Julieta Ríos", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:90, nombre:"Marcia Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:91, nombre:"Elvira Ríos", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:92, nombre:"Silvia Rios", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:93, nombre:"Yolanda Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:94, nombre:"Beatriz Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:95, nombre:"Noemí Rios", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:96, nombre:"Tío Toty", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:97, nombre:"Matías Huamacata", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:98, nombre:"Cecilia Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:99, nombre:"Adrian Pareja Ceci", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:100, nombre:"Hija de Cecilia Castro", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:101, nombre:"Gustavo Castro", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:102, nombre:"ABUELA TELESFORA", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:103, nombre:"Alvaro Castro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:104, nombre:"Graciela Gutierrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:105, nombre:"Jorge Gutierrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:106, nombre:"Padrino de Mauri Gutiérrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:107, nombre:"Facundo Huaita", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:108, nombre:"Luana Tolaba", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:109, nombre:"Mauricio Gutierrez", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:110, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:111, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:112, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:113, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:114, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:115, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:116, nombre:"primos 1 de mauri", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:117, nombre:"hija de Mariana Tolaba", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:118, nombre:"hija de Mariana Tolaba", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:119, nombre:"hija de Mariana Tolaba", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:120, nombre:"Sofia Hija de tía Raquel", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:121, nombre:"hija de manuel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:122, nombre:"hija de manuel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:123, nombre:"hija de manuel", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:124, nombre:"hijo de leo", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:125, nombre:"Nahir Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:126, nombre:"Belen Miranda", cel:"-", tipo:"ADULTO/A", para:"ENVIADO", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:127, nombre:"hija de belen", cel:"-", tipo:"NENA", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:128, nombre:"Nancy miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:129, nombre:"hijo de Nancy", cel:"-", tipo:"NENE", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:130, nombre:"Mayra Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:131, nombre:"Luz Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:132, nombre:"agustina Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:133, nombre:"Nicolás Miranda", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:134, nombre:"Benjamin Miranda", cel:"-", tipo:"NENE", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:135, nombre:"Ariel Rios", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:136, nombre:"Primo Rodi", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:137, nombre:"Prima Alba", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:138, nombre:"Prima Agustina", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:139, nombre:"Luz Navarro", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:140, nombre:"pareja de navarro", cel:"-", tipo:"ADULTO/A", para:"CONSULTAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:141, nombre:"Franchesca Navarro", cel:"-", tipo:"NENA", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:142, nombre:"trejo", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:143, nombre:"Robert", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:144, nombre:"Pareja de Robert", cel:"-", tipo:"ADULTO/A", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:145, nombre:"Hijo 1 de Robert", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"},
+ {id:146, nombre:"Hijo 2 de Robert", cel:"-", tipo:"NENE", para:"ENVIAR", estado:"FALTA CONFIRMAR", asistencia:"PENDIENTE"}
  ];
 
  const defaultTasks = [
@@ -701,11 +689,12 @@ html_code = """<!DOCTYPE html>
  const tbody = document.getElementById('guestsTableBody');
  const search = document.getElementById('searchInput').value.toLowerCase();
  const fEst = document.getElementById('filterEstado').value;
- const fEnv = document.getElementById('filterEnvio').value;
+ const fAsis = document.getElementById('filterAsistencia').value;
  
  const filtered = guests.filter(g => {
  return (g.nombre.toLowerCase().includes(search) || g.cel.includes(search)) &&
- (fEst === 'ALL' || g.estado === fEst) && (fEnv === 'ALL' || g.para === fEnv);
+ (fEst === 'ALL' || g.estado === fEst) && 
+ (fAsis === 'ALL' || (g.asistencia || 'PENDIENTE') === fAsis);
  });
 
  let htmlRows = "";
@@ -713,6 +702,9 @@ html_code = """<!DOCTYPE html>
  const globalIndex = guests.findIndex(item => item.id === g.id) + 1;
  const isEditing = g.isEditing || false;
  let statusBadgeClass = g.estado === 'CONFIRMADO' ? 'badge-confirmado' : (g.estado === 'NO PODRA ASISTIR' ? 'badge-no-asistira' : 'badge-pendiente');
+ 
+ const asisVal = g.asistencia || 'PENDIENTE';
+ let asisBadgeClass = asisVal === 'FUE' ? 'badge-fue' : (asisVal === 'NO FUE' ? 'badge-no-fue' : 'badge-pendiente');
 
  htmlRows += `<tr draggable="true" ondragstart="drag(event)" ondragover="allowDrop(event)" ondrop="drop(event, ${g.id})" data-id="${g.id}">
  <td>${globalIndex}</td>
@@ -729,15 +721,15 @@ html_code = """<!DOCTYPE html>
  <option value="NENA" ${g.tipo==='NENA'?'selected':''}>👧 Nena</option>
  </select>
  </td>
- <td><select class="status-badge badge-envio" onchange="updateGuest(${g.id}, 'para', this.value)">
- <option value="ENVIAR" ${g.para==='ENVIAR'?'selected':''}>📬 ENVIAR</option>
- <option value="ENVIADO" ${g.para==='ENVIADO'?'selected':''}>✅ ENVIADO</option>
- <option value="CONSULTAR" ${g.para==='CONSULTAR'?'selected':''}>❓ CONSULTAR</option>
- </select></td>
  <td><select class="status-badge ${statusBadgeClass}" onchange="updateGuest(${g.id}, 'estado', this.value)">
  <option value="CONFIRMADO" ${g.estado==='CONFIRMADO'?'selected':''}>🎉 CONFIRMADO</option>
  <option value="FALTA CONFIRMAR" ${g.estado==='FALTA CONFIRMAR'?'selected':''}>⏳ FALTA CONFIRMAR</option>
  <option value="NO PODRA ASISTIR" ${g.estado==='NO PODRA ASISTIR'?'selected':''}>❌ NO PODRA ASISTIR</option>
+ </select></td>
+ <td><select class="status-badge ${asisBadgeClass}" onchange="updateGuest(${g.id}, 'asistencia', this.value)">
+ <option value="PENDIENTE" ${asisVal==='PENDIENTE'?'selected':''}>⏳ PENDIENTE</option>
+ <option value="FUE" ${asisVal==='FUE'?'selected':''}>✅ FUE (Asistió)</option>
+ <option value="NO FUE" ${asisVal==='NO FUE'?'selected':''}>❌ NO FUE</option>
  </select></td>
  <td style="text-align:center; white-space:nowrap;">
  ${isEditing ? `
@@ -761,12 +753,8 @@ html_code = """<!DOCTYPE html>
  document.getElementById('metricConfirmed').innerText = guests.filter(g => g.estado === 'CONFIRMADO').length;
  document.getElementById('metricPendingConfirm').innerText = guests.filter(g => g.estado === 'FALTA CONFIRMAR').length;
  document.getElementById('metricDeclined').innerText = guests.filter(g => g.estado === 'NO PODRA ASISTIR').length;
- document.getElementById('metricAdultos').innerText = guests.filter(g => g.estado === 'CONFIRMADO' && (!g.tipo || g.tipo === 'ADULTO/A')).length;
- document.getElementById('metricNenes').innerText = guests.filter(g => g.estado === 'CONFIRMADO' && g.tipo === 'NENE').length;
- document.getElementById('metricNenas').innerText = guests.filter(g => g.estado === 'CONFIRMADO' && g.tipo === 'NENA').length;
- document.getElementById('metricEnviados').innerText = guests.filter(g => g.para === 'ENVIADO').length;
- document.getElementById('metricPorEnviar').innerText = guests.filter(g => g.para === 'ENVIAR').length;
- document.getElementById('metricConsultar').innerText = guests.filter(g => g.para === 'CONSULTAR').length;
+ document.getElementById('metricFue').innerText = guests.filter(g => g.asistencia === 'FUE').length;
+ document.getElementById('metricNoFue').innerText = guests.filter(g => g.asistencia === 'NO FUE').length;
  }
 
  function toggleEditGuest(id) {
@@ -849,7 +837,7 @@ html_code = """<!DOCTYPE html>
  const cel = document.getElementById('newGuestCel').value.trim();
  const tipo = document.getElementById('newGuestTipo').value;
  if(!name) return;
- guests.push({ id: guests.length ? Math.max(...guests.map(g => g.id)) + 1 : 1, nombre: name, cel: cel || 'Averiguar', tipo: tipo, para: 'ENVIAR', estado: 'FALTA CONFIRMAR' });
+ guests.push({ id: guests.length ? Math.max(...guests.map(g => g.id)) + 1 : 1, nombre: name, cel: cel || 'Averiguar', tipo: tipo, para: 'ENVIAR', estado: 'FALTA CONFIRMAR', asistencia: 'PENDIENTE' });
  saveGuests(); closeAddModal(); 
  document.getElementById('newGuestName').value = ''; 
  document.getElementById('newGuestCel').value = '';
@@ -945,7 +933,7 @@ html_code = """<!DOCTYPE html>
  }
 
  function updateCron(id, key, val) { 
- const c = cronograma.find(x => x.id === id); 
+ const c = cronograma.log?.find ? null : cronograma.find(x => x.id === id); 
  if(c) { 
  c[key] = val; 
  saveCronograma(); 
@@ -966,5 +954,5 @@ html_code = """<!DOCTYPE html>
 </body>
 </html>"""
 
-# Renderizar expandido en toda la pantalla del navegador
+# Renderizar la aplicación en Streamlit
 st.components.v1.html(html_code, height=1000, scrolling=True)
