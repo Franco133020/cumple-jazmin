@@ -1,7 +1,6 @@
 import streamlit as st
-import streamlit.components.v1 as components
 
-# Configurar la página en modo ancho
+# Configurar la página en modo ancho y título
 st.set_page_config(
     page_title="Cumple de Jazmín - Panel de Control",
     page_icon="🎉",
@@ -9,7 +8,33 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Código HTML completo con todas tus funciones, estilos, invitados y Firebase
+# Ocultar el menú superior y el pie de página nativo de Streamlit para que luzca como una app web independiente
+hide_streamlit_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .block-container {
+        padding-top: 0rem !important;
+        padding-bottom: 0rem !important;
+        padding-left: 0rem !important;
+        padding-right: 0rem !important;
+        max-width: 100% !important;
+    }
+    iframe {
+        width: 100vw !important;
+        height: 100vh !important;
+        border: none !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        z-index: 999999 !important;
+    }
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+# Tu aplicación HTML completa incrustada a pantalla completa real
 html_code = """<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -172,7 +197,7 @@ html_code = """<!DOCTYPE html>
  /* Tareas y Organización */
  .task-category { margin-top: 15px; margin-bottom: 8px; font-weight: bold; color: var(--primary); border-bottom: 2px solid var(--border-color); padding-bottom: 4px; font-size: 1rem; }
  .check-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); background: var(--card-bg); }
- .check-item-title { flex: 1; font-weight: 500; font-size: 0.9rem; }
+ .check-item-title { flex: 1; font-weight: 500; font-size: 0.90rem; }
  .check-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
  .check-label { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--text); cursor: pointer; background: var(--light-gray); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color); }
  .check-label input { accent-color: var(--primary); width: 15px; height: 15px; cursor: pointer; }
@@ -941,5 +966,5 @@ html_code = """<!DOCTYPE html>
 </body>
 </html>"""
 
-# Renderizar toda la aplicación en Streamlit conservando 100% las funciones originales
-components.html(html_code, height=950, scrolling=True)
+# Renderizar expandido en toda la pantalla del navegador
+st.components.v1.html(html_code, height=1000, scrolling=True)
