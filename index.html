@@ -879,7 +879,7 @@
  if(catItems.length === 0) return;
  container.innerHTML += `<div class="task-category">${cat}</div>`;
  catItems.forEach(t => {
- const cant = t.cantidad || '';
+ const cant = t.cantidad !== undefined ? t.cantidad : '';
  const unit = t.unitario || 0;
  const tot = t.total || 0;
  
@@ -891,16 +891,16 @@
  <div class="check-item">
  <span class="check-item-title" style="${t.bought ? 'text-decoration:line-through; opacity:0.5;' : ''}">${t.name}</span>
  <div class="check-group">
- <input type="text" class="shop-input" placeholder="Cantidad" value="${cant}" onchange="updateShopField(${t.id}, 'cantidad', this.value)" title="Cuánto se compró">
- <input type="number" class="shop-input" placeholder="Unitario $" value="${unit || ''}" onchange="calcularShop(${t.id}, 'unitario', this.value)" title="Precio unitario">
- <input type="number" class="shop-input" placeholder="Total $" value="${tot || ''}" onchange="calcularShop(${t.id}, 'total', this.value)" title="Total gastado">
+ <input type="text" class="shop-input" placeholder="Cantidad" value="${cant}" oninput="updateShopField(${t.id}, 'cantidad', this.value)" title="Cuánto se compró">
+ <input type="number" class="shop-input" placeholder="Unitario $" value="${unit || ''}" oninput="calcularShop(${t.id}, 'unitario', this.value)" title="Precio unitario">
+ <input type="number" class="shop-input" placeholder="Total $" value="${tot || ''}" oninput="calcularShop(${t.id}, 'total', this.value)" title="Total gastado">
  <label class="check-label"><input type="checkbox" ${t.bought ? 'checked' : ''} onchange="toggleShopItem(${t.id})">✔️ Comprado</label>
  <button class="btn-icon" onclick="deleteShopItem(${t.id})" style="color:#e74c3c;">✖</button>
  </div>
  </div>`;
  });
  });
- document.getElementById('metricTotalGasto').innerText = '$' + totalGastoGeneral.toLocaleString();
+ document.getElementById('metricTotalGasto').innerText = '$' + totalGastoGeneral.toLocaleString('es-AR');
  }
 
  function updateShopField(id, field, val) {
@@ -919,20 +919,33 @@
 
  if (origen === 'unitario') {
  t.unitario = valor;
- t.total = parseFloat((valor * (parseFloat(t.cantidad) || 1)).toFixed(2));
+ const cantNum = parseFloat(t.cantidad) || 1;
+ t.total = parseFloat((valor * cantNum).toFixed(2));
  } else if (origen === 'total') {
  t.total = valor;
- if (parseFloat(t.cantidad)) {
- t.unitario = parseFloat((valor / parseFloat(t.cantidad)).toFixed(2));
+ const cantNum = parseFloat(t.cantidad);
+ if (cantNum && cantNum > 0) {
+ t.unitario = parseFloat((valor / cantNum).toFixed(2));
  } else {
  t.unitario = valor;
  }
  }
  saveShopping();
- renderShopping();
+ 
+ // Actualizar solo el valor visual del total en pantalla sin perder el foco del input actual
+ const totalGastoGeneral = shoppingItems.reduce((acc, item) => item.bought ? acc + (parseFloat(item.total) || 0) : acc, 0);
+ document.getElementById('metricTotalGasto').innerText = '$' + totalGastoGeneral.toLocaleString('es-AR');
  }
 
- function toggleShopItem(id) { const t = shoppingItems.find(x => x.id === id); if(t) { t.bought = !t.bought; saveShopping(); renderShopping(); } }
+ function toggleShopItem(id) { 
+ const t = shoppingItems.find(x => x.id === id); 
+ if(t) { 
+ t.bought = !t.bought; 
+ saveShopping(); 
+ renderShopping(); 
+ } 
+ }
+
  function addShopItem() {
  const input = document.getElementById('newShopInput');
  const cat = document.getElementById('newShopCategory').value;
@@ -940,6 +953,7 @@
  shoppingItems.push({ id: Date.now(), category: cat, name: input.value.trim(), bought: false, cantidad: "", unitario: 0, total: 0 });
  input.value = ''; saveShopping();
  }
+
  function deleteShopItem(id) { if(confirm("¿Eliminar?")) { shoppingItems = shoppingItems.filter(t => t.id !== id); saveShopping(); } }
 
  function renderCronograma() {
