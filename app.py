@@ -22,7 +22,7 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# Código HTML completo con la nueva columna de Asistencia Real
+# Código HTML completo con todos los contadores restaurados
 html_code = """<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -136,9 +136,9 @@ html_code = """<!DOCTYPE html>
 
  /* Metrics & Controls */
  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 15px; }
- .metric-card { background: var(--card-bg); padding: 12px; border-radius: var(--border-radius); box-shadow: 0 2px 6px rgba(0,0,0,0.02); text-align: center;}
- .metric-title { font-size: 0.75rem; color: var(--gray); margin-bottom: 4px; font-weight: 600;}
- .metric-value { font-size: 1.4rem; font-weight: bold; }
+ .metric-card { background: var(--card-bg); padding: 10px; border-radius: var(--border-radius); box-shadow: 0 2px 6px rgba(0,0,0,0.02); text-align: center;}
+ .metric-title { font-size: 0.7rem; color: var(--gray); margin-bottom: 4px; font-weight: 600;}
+ .metric-value { font-size: 1.25rem; font-weight: bold; }
  .metric-value.total { color: var(--text); } 
  .metric-value.confirmed { color: var(--green); }
  .metric-value.pending-confirm { color: var(--orange); } 
@@ -146,6 +146,9 @@ html_code = """<!DOCTYPE html>
  .metric-value.adultos { color: var(--purple); }
  .metric-value.nenes { color: var(--blue); }
  .metric-value.nenas { color: var(--primary); }
+ .metric-value.enviados { color: var(--blue); }
+ .metric-value.pending-send { color: var(--blue); }
+ .metric-value.consultar { color: var(--purple); }
  .metric-value.asistio { color: var(--green); }
  .metric-value.no-asistio { color: #e74c3c; }
 
@@ -238,6 +241,12 @@ html_code = """<!DOCTYPE html>
  <div class="metric-card"><div class="metric-title">Confirmados</div><div class="metric-value confirmed" id="metricConfirmed">0</div></div>
  <div class="metric-card"><div class="metric-title">Falta confirmar</div><div class="metric-value pending-confirm" id="metricPendingConfirm">0</div></div>
  <div class="metric-card"><div class="metric-title">No asistirán</div><div class="metric-value declined" id="metricDeclined">0</div></div>
+ <div class="metric-card"><div class="metric-title">Adultos Conf.</div><div class="metric-value adultos" id="metricAdultos">0</div></div>
+ <div class="metric-card"><div class="metric-title">Nenes Conf.</div><div class="metric-value nenes" id="metricNenes">0</div></div>
+ <div class="metric-card"><div class="metric-title">Nenas Conf.</div><div class="metric-value nenas" id="metricNenas">0</div></div>
+ <div class="metric-card"><div class="metric-title">Enviados</div><div class="metric-value enviados" id="metricEnviados">0</div></div>
+ <div class="metric-card"><div class="metric-title">Por enviar</div><div class="metric-value pending-send" id="metricPorEnviar">0</div></div>
+ <div class="metric-card"><div class="metric-title">Consultar</div><div class="metric-value consultar" id="metricConsultar">0</div></div>
  <div class="metric-card"><div class="metric-title">Asistieron (FUE)</div><div class="metric-value asistio" id="metricFue">0</div></div>
  <div class="metric-card"><div class="metric-title">No asistieron</div><div class="metric-value no-asistio" id="metricNoFue">0</div></div>
  </div>
@@ -753,6 +762,12 @@ html_code = """<!DOCTYPE html>
  document.getElementById('metricConfirmed').innerText = guests.filter(g => g.estado === 'CONFIRMADO').length;
  document.getElementById('metricPendingConfirm').innerText = guests.filter(g => g.estado === 'FALTA CONFIRMAR').length;
  document.getElementById('metricDeclined').innerText = guests.filter(g => g.estado === 'NO PODRA ASISTIR').length;
+ document.getElementById('metricAdultos').innerText = guests.filter(g => g.estado === 'CONFIRMADO' && (!g.tipo || g.tipo === 'ADULTO/A')).length;
+ document.getElementById('metricNenes').innerText = guests.filter(g => g.estado === 'CONFIRMADO' && g.tipo === 'NENE').length;
+ document.getElementById('metricNenas').innerText = guests.filter(g => g.estado === 'CONFIRMADO' && g.tipo === 'NENA').length;
+ document.getElementById('metricEnviados').innerText = guests.filter(g => g.para === 'ENVIADO').length;
+ document.getElementById('metricPorEnviar').innerText = guests.filter(g => g.para === 'ENVIAR').length;
+ document.getElementById('metricConsultar').innerText = guests.filter(g => g.para === 'CONSULTAR').length;
  document.getElementById('metricFue').innerText = guests.filter(g => g.asistencia === 'FUE').length;
  document.getElementById('metricNoFue').innerText = guests.filter(g => g.asistencia === 'NO FUE').length;
  }
@@ -933,7 +948,7 @@ html_code = """<!DOCTYPE html>
  }
 
  function updateCron(id, key, val) { 
- const c = cronograma.log?.find ? null : cronograma.find(x => x.id === id); 
+ const c = cronograma.find(x => x.id === id); 
  if(c) { 
  c[key] = val; 
  saveCronograma(); 
