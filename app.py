@@ -22,7 +22,7 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# Código HTML completo con todos los contadores restaurados
+# Código HTML completo con la edición de cantidades y precios en Compras
 html_code = """<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -151,6 +151,7 @@ html_code = """<!DOCTYPE html>
  .metric-value.consultar { color: var(--purple); }
  .metric-value.asistio { color: var(--green); }
  .metric-value.no-asistio { color: #e74c3c; }
+ .metric-value.gasto { color: var(--primary); }
 
  .controls-bar {
  background: var(--card-bg); padding: 12px; border-radius: var(--border-radius); display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
@@ -159,6 +160,7 @@ html_code = """<!DOCTYPE html>
  .search-input { flex: 2; min-width: 180px; } .filter-select { flex: 1; min-width: 130px; }
  .cel-input { width: 120px; padding: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.85rem; outline: none; }
  .name-input { width: 100%; min-width: 150px; padding: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.9rem; outline: none; font-weight: 500; }
+ .shop-input { width: 85px; padding: 5px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.85rem; text-align: right; outline: none; }
 
  /* Tables */
  .table-container { 
@@ -188,9 +190,9 @@ html_code = """<!DOCTYPE html>
 
  /* Tareas y Organización */
  .task-category { margin-top: 15px; margin-bottom: 8px; font-weight: bold; color: var(--primary); border-bottom: 2px solid var(--border-color); padding-bottom: 4px; font-size: 1rem; }
- .check-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); background: var(--card-bg); }
- .check-item-title { flex: 1; font-weight: 500; font-size: 0.9rem; }
- .check-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+ .check-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); background: var(--card-bg); flex-wrap: wrap; }
+ .check-item-title { flex: 2; font-weight: 500; font-size: 0.9rem; min-width: 150px; }
+ .check-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
  .check-label { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--text); cursor: pointer; background: var(--light-gray); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color); }
  .check-label input { accent-color: var(--primary); width: 15px; height: 15px; cursor: pointer; }
  
@@ -303,6 +305,9 @@ html_code = """<!DOCTYPE html>
 
  <!-- TAB 3: COMPRAS -->
  <div id="tab-compras" class="tab-content">
+ <div class="metrics-grid" style="margin-bottom: 15px;">
+ <div class="metric-card"><div class="metric-title">Gasto Total Compras</div><div class="metric-value gasto" id="metricTotalGasto">$0</div></div>
+ </div>
  <div class="controls-bar">
  <select id="newShopCategory" class="filter-select" style="flex:1;">
  <option value="Carnicería / Pollería">🥩 Carnicería / Pollería</option>
@@ -560,24 +565,24 @@ html_code = """<!DOCTYPE html>
  ];
 
  const defaultShopping = [
- { id: 1, category: "Carnicería / Pollería", name: "Pollo", bought: false },
- { id: 2, category: "Carnicería / Pollería", name: "Carne", bought: false },
- { id: 3, category: "Panadería y Fiambres", name: "Pan de miga", bought: false },
- { id: 4, category: "Panadería y Fiambres", name: "Prepizza", bought: false },
- { id: 5, category: "Panadería y Fiambres", name: "Queso", bought: false },
- { id: 6, category: "Panadería y Fiambres", name: "Mortadela", bought: false },
- { id: 7, category: "Golosinas", name: "Golosinas para las bolsitas", bought: false },
- { id: 8, category: "Golosinas", name: "Golosinas para el candy bar", bought: false },
- { id: 9, category: "Repostería y Almacén", name: "Harina", bought: false },
- { id: 10, category: "Repostería y Almacén", name: "Dulce de leche", bought: false },
- { id: 11, category: "Repostería y Almacén", name: "Margarina", bought: false },
- { id: 12, category: "Repostería y Almacén", name: "Coco rallado", bought: false },
- { id: 13, category: "Repostería y Almacén", name: "Dulce de membrillo", bought: false },
- { id: 14, category: "Repostería y Almacén", name: "Maizena", bought: false },
- { id: 15, category: "Repostería y Almacén", name: "Pan rallado", bought: false },
- { id: 16, category: "Verdulería", name: "Papa", bought: false },
- { id: 17, category: "Verdulería", name: "Cebolla", bought: false },
- { id: 18, category: "Decoración y Otros", name: "Alfombra tipo césped sintético", bought: false }
+ { id: 1, category: "Carnicería / Pollería", name: "Pollo", bought: false, cantidad: "", precio: 0 },
+ { id: 2, category: "Carnicería / Pollería", name: "Carne", bought: false, cantidad: "", precio: 0 },
+ { id: 3, category: "Panadería y Fiambres", name: "Pan de miga", bought: false, cantidad: "", precio: 0 },
+ { id: 4, category: "Panadería y Fiambres", name: "Prepizza", bought: false, cantidad: "", precio: 0 },
+ { id: 5, category: "Panadería y Fiambres", name: "Queso", bought: false, cantidad: "", precio: 0 },
+ { id: 6, category: "Panadería y Fiambres", name: "Mortadela", bought: false, cantidad: "", precio: 0 },
+ { id: 7, category: "Golosinas", name: "Golosinas para las bolsitas", bought: false, cantidad: "", precio: 0 },
+ { id: 8, category: "Golosinas", name: "Golosinas para el candy bar", bought: false, cantidad: "", precio: 0 },
+ { id: 9, category: "Repostería y Almacén", name: "Harina", bought: false, cantidad: "", precio: 0 },
+ { id: 10, category: "Repostería y Almacén", name: "Dulce de leche", bought: false, cantidad: "", precio: 0 },
+ { id: 11, category: "Repostería y Almacén", name: "Margarina", bought: false, cantidad: "", precio: 0 },
+ { id: 12, category: "Repostería y Almacén", name: "Coco rallado", bought: false, cantidad: "", precio: 0 },
+ { id: 13, category: "Repostería y Almacén", name: "Dulce de membrillo", bought: false, cantidad: "", precio: 0 },
+ { id: 14, category: "Repostería y Almacén", name: "Maizena", bought: false, cantidad: "", precio: 0 },
+ { id: 15, category: "Repostería y Almacén", name: "Pan rallado", bought: false, cantidad: "", precio: 0 },
+ { id: 16, category: "Verdulería", name: "Papa", bought: false, cantidad: "", precio: 0 },
+ { id: 17, category: "Verdulería", name: "Cebolla", bought: false, cantidad: "", precio: 0 },
+ { id: 18, category: "Decoración y Otros", name: "Alfombra tipo césped sintético", bought: false, cantidad: "", precio: 0 }
  ];
 
  const defaultCronograma = [
@@ -892,21 +897,42 @@ html_code = """<!DOCTYPE html>
  function renderShopping() {
  const container = document.getElementById('shoppingList');
  container.innerHTML = '';
+ let totalGastoGeneral = 0;
+
  ["Carnicería / Pollería", "Panadería y Fiambres", "Repostería y Almacén", "Verdulería", "Golosinas", "Decoración y Otros"].forEach(cat => {
  const catItems = shoppingItems.filter(t => t.category === cat);
  if(catItems.length === 0) return;
  container.innerHTML += `<div class="task-category">${cat}</div>`;
  catItems.forEach(t => {
+ const cant = t.cantidad || '';
+ const prec = t.precio || 0;
+ const subtotal = (parseFloat(cant) || 0) * (parseFloat(prec) || 0);
+ if(t.bought) {
+ totalGastoGeneral += subtotal;
+ }
+
  container.innerHTML += `
  <div class="check-item">
  <span class="check-item-title" style="${t.bought ? 'text-decoration:line-through; opacity:0.5;' : ''}">${t.name}</span>
  <div class="check-group">
+ <input type="text" class="shop-input" placeholder="Cantidad" value="${cant}" onchange="updateShopField(${t.id}, 'cantidad', this.value)" title="Cuánto se compró">
+ <input type="number" class="shop-input" placeholder="Precio $" value="${prec || ''}" onchange="updateShopField(${t.id}, 'precio', this.value)" title="A cuánto se compró">
+ <span style="font-size:0.8rem; font-weight:bold; color:var(--primary); min-width:60px;">$${subtotal.toLocaleString()}</span>
  <label class="check-label"><input type="checkbox" ${t.bought ? 'checked' : ''} onchange="toggleShopItem(${t.id})">✔️ Comprado</label>
  <button class="btn-icon" onclick="deleteShopItem(${t.id})" style="color:#e74c3c;">✖</button>
  </div>
  </div>`;
  });
  });
+ document.getElementById('metricTotalGasto').innerText = '$' + totalGastoGeneral.toLocaleString();
+ }
+
+ function updateShopField(id, field, val) {
+ const t = shoppingItems.find(x => x.id === id);
+ if(t) {
+ t[field] = field === 'precio' ? (parseFloat(val) || 0) : val;
+ saveShopping();
+ }
  }
 
  function toggleShopItem(id) { const t = shoppingItems.find(x => x.id === id); if(t) { t.bought = !t.bought; saveShopping(); } }
@@ -914,7 +940,7 @@ html_code = """<!DOCTYPE html>
  const input = document.getElementById('newShopInput');
  const cat = document.getElementById('newShopCategory').value;
  if(!input.value.trim()) return;
- shoppingItems.push({ id: Date.now(), category: cat, name: input.value.trim(), bought: false });
+ shoppingItems.push({ id: Date.now(), category: cat, name: input.value.trim(), bought: false, cantidad: "", precio: 0 });
  input.value = ''; saveShopping();
  }
  function deleteShopItem(id) { if(confirm("¿Eliminar?")) { shoppingItems = shoppingItems.filter(t => t.id !== id); saveShopping(); } }
