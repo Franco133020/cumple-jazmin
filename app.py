@@ -22,7 +22,7 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# Código HTML completo con la edición de cantidades y precios en Compras
+# Código HTML completo con recálculo automático entre Precio Unitario y Total
 html_code = """<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -160,7 +160,7 @@ html_code = """<!DOCTYPE html>
  .search-input { flex: 2; min-width: 180px; } .filter-select { flex: 1; min-width: 130px; }
  .cel-input { width: 120px; padding: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.85rem; outline: none; }
  .name-input { width: 100%; min-width: 150px; padding: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.9rem; outline: none; font-weight: 500; }
- .shop-input { width: 85px; padding: 5px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.85rem; text-align: right; outline: none; }
+ .shop-input { width: 75px; padding: 5px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text); border-radius: 6px; font-size: 0.85rem; text-align: right; outline: none; }
 
  /* Tables */
  .table-container { 
@@ -191,8 +191,8 @@ html_code = """<!DOCTYPE html>
  /* Tareas y Organización */
  .task-category { margin-top: 15px; margin-bottom: 8px; font-weight: bold; color: var(--primary); border-bottom: 2px solid var(--border-color); padding-bottom: 4px; font-size: 1rem; }
  .check-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); background: var(--card-bg); flex-wrap: wrap; }
- .check-item-title { flex: 2; font-weight: 500; font-size: 0.9rem; min-width: 150px; }
- .check-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+ .check-item-title { flex: 2; font-weight: 500; font-size: 0.9rem; min-width: 140px; }
+ .check-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
  .check-label { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--text); cursor: pointer; background: var(--light-gray); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color); }
  .check-label input { accent-color: var(--primary); width: 15px; height: 15px; cursor: pointer; }
  
@@ -565,24 +565,24 @@ html_code = """<!DOCTYPE html>
  ];
 
  const defaultShopping = [
- { id: 1, category: "Carnicería / Pollería", name: "Pollo", bought: false, cantidad: "", precio: 0 },
- { id: 2, category: "Carnicería / Pollería", name: "Carne", bought: false, cantidad: "", precio: 0 },
- { id: 3, category: "Panadería y Fiambres", name: "Pan de miga", bought: false, cantidad: "", precio: 0 },
- { id: 4, category: "Panadería y Fiambres", name: "Prepizza", bought: false, cantidad: "", precio: 0 },
- { id: 5, category: "Panadería y Fiambres", name: "Queso", bought: false, cantidad: "", precio: 0 },
- { id: 6, category: "Panadería y Fiambres", name: "Mortadela", bought: false, cantidad: "", precio: 0 },
- { id: 7, category: "Golosinas", name: "Golosinas para las bolsitas", bought: false, cantidad: "", precio: 0 },
- { id: 8, category: "Golosinas", name: "Golosinas para el candy bar", bought: false, cantidad: "", precio: 0 },
- { id: 9, category: "Repostería y Almacén", name: "Harina", bought: false, cantidad: "", precio: 0 },
- { id: 10, category: "Repostería y Almacén", name: "Dulce de leche", bought: false, cantidad: "", precio: 0 },
- { id: 11, category: "Repostería y Almacén", name: "Margarina", bought: false, cantidad: "", precio: 0 },
- { id: 12, category: "Repostería y Almacén", name: "Coco rallado", bought: false, cantidad: "", precio: 0 },
- { id: 13, category: "Repostería y Almacén", name: "Dulce de membrillo", bought: false, cantidad: "", precio: 0 },
- { id: 14, category: "Repostería y Almacén", name: "Maizena", bought: false, cantidad: "", precio: 0 },
- { id: 15, category: "Repostería y Almacén", name: "Pan rallado", bought: false, cantidad: "", precio: 0 },
- { id: 16, category: "Verdulería", name: "Papa", bought: false, cantidad: "", precio: 0 },
- { id: 17, category: "Verdulería", name: "Cebolla", bought: false, cantidad: "", precio: 0 },
- { id: 18, category: "Decoración y Otros", name: "Alfombra tipo césped sintético", bought: false, cantidad: "", precio: 0 }
+ { id: 1, category: "Carnicería / Pollería", name: "Pollo", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 2, category: "Carnicería / Pollería", name: "Carne", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 3, category: "Panadería y Fiambres", name: "Pan de miga", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 4, category: "Panadería y Fiambres", name: "Prepizza", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 5, category: "Panadería y Fiambres", name: "Queso", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 6, category: "Panadería y Fiambres", name: "Mortadela", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 7, category: "Golosinas", name: "Golosinas para las bolsitas", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 8, category: "Golosinas", name: "Golosinas para el candy bar", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 9, category: "Repostería y Almacén", name: "Harina", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 10, category: "Repostería y Almacén", name: "Dulce de leche", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 11, category: "Repostería y Almacén", name: "Margarina", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 12, category: "Repostería y Almacén", name: "Coco rallado", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 13, category: "Repostería y Almacén", name: "Dulce de membrillo", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 14, category: "Repostería y Almacén", name: "Maizena", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 15, category: "Repostería y Almacén", name: "Pan rallado", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 16, category: "Verdulería", name: "Papa", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 17, category: "Verdulería", name: "Cebolla", bought: false, cantidad: "", unitario: 0, total: 0 },
+ { id: 18, category: "Decoración y Otros", name: "Alfombra tipo césped sintético", bought: false, cantidad: "", unitario: 0, total: 0 }
  ];
 
  const defaultCronograma = [
@@ -857,143 +857,4 @@ html_code = """<!DOCTYPE html>
  const cel = document.getElementById('newGuestCel').value.trim();
  const tipo = document.getElementById('newGuestTipo').value;
  if(!name) return;
- guests.push({ id: guests.length ? Math.max(...guests.map(g => g.id)) + 1 : 1, nombre: name, cel: cel || 'Averiguar', tipo: tipo, para: 'ENVIAR', estado: 'FALTA CONFIRMAR', asistencia: 'PENDIENTE' });
- saveGuests(); closeAddModal(); 
- document.getElementById('newGuestName').value = ''; 
- document.getElementById('newGuestCel').value = '';
- }
-
- function renderTasks() {
- const container = document.getElementById('tasksList');
- container.innerHTML = '';
- ["Decoración", "Comida y Bebida", "Equipamiento", "Varios"].forEach(cat => {
- const catTasks = tasks.filter(t => t.category === cat);
- if(catTasks.length === 0) return;
- container.innerHTML += `<div class="task-category">${cat}</div>`;
- catTasks.forEach(t => {
- container.innerHTML += `
- <div class="check-item">
- <span class="check-item-title" style="${t.done && t.taken ? 'text-decoration:line-through; opacity:0.5;' : ''}">${t.name}</span>
- <div class="check-group">
- <label class="check-label"><input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id}, 'done')">✔️ Realizado</label>
- <label class="check-label"><input type="checkbox" ${t.taken ? 'checked' : ''} onchange="toggleTask(${t.id}, 'taken')">📍 Local</label>
- <button class="btn-icon" onclick="deleteTask(${t.id})" style="color:#e74c3c;">✖</button>
- </div>
- </div>`;
- });
- });
- }
-
- function toggleTask(id, type) { const t = tasks.find(x => x.id === id); if(t) { t[type] = !t[type]; saveTasks(); } }
- function addTask() {
- const input = document.getElementById('newTaskInput');
- const cat = document.getElementById('newTaskCategory').value;
- if(!input.value.trim()) return;
- tasks.push({ id: Date.now(), category: cat, name: input.value.trim(), done: false, taken: false });
- input.value = ''; saveTasks();
- }
- function deleteTask(id) { if(confirm("¿Eliminar?")) { tasks = tasks.filter(t => t.id !== id); saveTasks(); } }
-
- function renderShopping() {
- const container = document.getElementById('shoppingList');
- container.innerHTML = '';
- let totalGastoGeneral = 0;
-
- ["Carnicería / Pollería", "Panadería y Fiambres", "Repostería y Almacén", "Verdulería", "Golosinas", "Decoración y Otros"].forEach(cat => {
- const catItems = shoppingItems.filter(t => t.category === cat);
- if(catItems.length === 0) return;
- container.innerHTML += `<div class="task-category">${cat}</div>`;
- catItems.forEach(t => {
- const cant = t.cantidad || '';
- const prec = t.precio || 0;
- const subtotal = (parseFloat(cant) || 0) * (parseFloat(prec) || 0);
- if(t.bought) {
- totalGastoGeneral += subtotal;
- }
-
- container.innerHTML += `
- <div class="check-item">
- <span class="check-item-title" style="${t.bought ? 'text-decoration:line-through; opacity:0.5;' : ''}">${t.name}</span>
- <div class="check-group">
- <input type="text" class="shop-input" placeholder="Cantidad" value="${cant}" onchange="updateShopField(${t.id}, 'cantidad', this.value)" title="Cuánto se compró">
- <input type="number" class="shop-input" placeholder="Precio $" value="${prec || ''}" onchange="updateShopField(${t.id}, 'precio', this.value)" title="A cuánto se compró">
- <span style="font-size:0.8rem; font-weight:bold; color:var(--primary); min-width:60px;">$${subtotal.toLocaleString()}</span>
- <label class="check-label"><input type="checkbox" ${t.bought ? 'checked' : ''} onchange="toggleShopItem(${t.id})">✔️ Comprado</label>
- <button class="btn-icon" onclick="deleteShopItem(${t.id})" style="color:#e74c3c;">✖</button>
- </div>
- </div>`;
- });
- });
- document.getElementById('metricTotalGasto').innerText = '$' + totalGastoGeneral.toLocaleString();
- }
-
- function updateShopField(id, field, val) {
- const t = shoppingItems.find(x => x.id === id);
- if(t) {
- t[field] = field === 'precio' ? (parseFloat(val) || 0) : val;
- saveShopping();
- }
- }
-
- function toggleShopItem(id) { const t = shoppingItems.find(x => x.id === id); if(t) { t.bought = !t.bought; saveShopping(); } }
- function addShopItem() {
- const input = document.getElementById('newShopInput');
- const cat = document.getElementById('newShopCategory').value;
- if(!input.value.trim()) return;
- shoppingItems.push({ id: Date.now(), category: cat, name: input.value.trim(), bought: false, cantidad: "", precio: 0 });
- input.value = ''; saveShopping();
- }
- function deleteShopItem(id) { if(confirm("¿Eliminar?")) { shoppingItems = shoppingItems.filter(t => t.id !== id); saveShopping(); } }
-
- function renderCronograma() {
- const tbody = document.getElementById('cronogramaTableBody');
- tbody.innerHTML = '';
- let lastDate = "";
- 
- cronograma.forEach(c => {
- if (c.date !== lastDate) {
- lastDate = c.date;
- tbody.innerHTML += `<tr><td colspan="7" style="background:var(--table-header); color:var(--primary); font-weight:bold; padding:10px 12px; font-size:0.95rem; border-bottom:2px solid var(--border-color);">📅 Día: ${c.date}</td></tr>`;
- }
-
- let rowStyle = '';
- if (c.done) rowStyle = 'opacity: 0.5;';
- if (c.failed) rowStyle = 'opacity: 0.5;';
-
- tbody.innerHTML += `
- <tr style="${rowStyle}">
- <td><input type="date" class="cel-input" style="width:130px;" value="${c.date || '2026-10-17'}" onchange="updateCron(${c.id}, 'date', this.value)"></td>
- <td><input type="text" class="cel-input" style="width:90px;" value="${c.time}" onchange="updateCron(${c.id}, 'time', this.value)"></td>
- <td style="text-align:center;"><input type="checkbox" style="width:18px; height:18px; cursor:pointer; accent-color:var(--green);" ${c.done ? 'checked' : ''} onchange="updateCron(${c.id}, 'done', this.checked)"></td>
- <td style="text-align:center;"><input type="checkbox" style="width:18px; height:18px; cursor:pointer; accent-color:#e74c3c;" ${c.failed ? 'checked' : ''} onchange="updateCron(${c.id}, 'failed', this.checked)"></td>
- <td><input type="text" class="search-input" style="width:100%; ${c.done ? 'text-decoration:line-through;' : ''} ${c.failed ? 'text-decoration:line-through; color:#e74c3c;' : ''}" value="${c.title}" onchange="updateCron(${c.id}, 'title', this.value)"></td>
- <td><input type="text" class="search-input" style="width:100%;" value="${c.notes}" onchange="updateCron(${c.id}, 'notes', this.value)"></td>
- <td style="text-align:center;"><button class="btn-icon" onclick="deleteCron(${c.id})" style="color:#e74c3c;">🗑️</button></td>
- </tr>`;
- });
- }
-
- function updateCron(id, key, val) { 
- const c = cronograma.find(x => x.id === id); 
- if(c) { 
- c[key] = val; 
- saveCronograma(); 
- } 
- }
-
- function addCronItem() {
- const dateInput = document.getElementById('newCronDate');
- const timeInput = document.getElementById('newCronTime');
- const titleInput = document.getElementById('newCronTitle');
- if(!titleInput.value.trim()) return;
- cronograma.push({ id: Date.now(), date: dateInput.value || '2026-10-17', time: timeInput.value.trim() || 'Hora', title: titleInput.value.trim(), notes: '', done: false, failed: false });
- timeInput.value = ''; titleInput.value = ''; saveCronograma();
- }
-
- function deleteCron(id) { if(confirm("¿Eliminar?")) { cronograma = cronograma.filter(c => c.id !== id); saveCronograma(); } }
- </script>
-</body>
-</html>"""
-
-# Renderizar la aplicación en Streamlit
-st.components.v1.html(html_code, height=1000, scrolling=True)
+ guests.push({ id: guests.length ? Math.max(...guests.map(g => g.id)) + 1 : 1, nombre: name, cel: cel || 'Averiguar', tipo: tipo, para: 'ENVIAR',
