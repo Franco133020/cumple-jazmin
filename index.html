@@ -236,6 +236,12 @@
  <option value="FALTA CONFIRMAR">⏳ FALTA CONFIRMAR</option>
  <option value="NO PODRA ASISTIR">❌ NO PODRA ASISTIR</option>
  </select>
+ <select id="filterEnvio" class="filter-select" onchange="renderGuests()">
+ <option value="ALL">Envío (Todos)</option>
+ <option value="ENVIAR">📬 ENVIAR</option>
+ <option value="ENVIADO">✅ ENVIADO</option>
+ <option value="CONSULTAR">❓ CONSULTAR</option>
+ </select>
  <select id="filterAsistencia" class="filter-select" onchange="renderGuests()">
  <option value="ALL">Asistencia (Todos)</option>
  <option value="FUE">✅ FUE (Asistió)</option>
@@ -245,7 +251,7 @@
  </div>
  <div class="table-container">
  <table>
- <thead><tr><th>N°</th><th>NOMBRE</th><th>CELULAR</th><th>TIPO</th><th>ESTADO</th><th>ASISTENCIA REAL</th><th style="text-align:center;">ACCIONES</th></tr></thead>
+ <thead><tr><th>N°</th><th>NOMBRE</th><th>CELULAR</th><th>TIPO</th><th>ENVÍO</th><th>ESTADO</th><th>ASISTENCIA REAL</th><th style="text-align:center;">ACCIONES</th></tr></thead>
  <tbody id="guestsTableBody"></tbody>
  </table>
  </div>
@@ -678,11 +684,13 @@
  const tbody = document.getElementById('guestsTableBody');
  const search = document.getElementById('searchInput').value.toLowerCase();
  const fEst = document.getElementById('filterEstado').value;
+ const fEnv = document.getElementById('filterEnvio').value;
  const fAsis = document.getElementById('filterAsistencia').value;
  
  const filtered = guests.filter(g => {
  return (g.nombre.toLowerCase().includes(search) || g.cel.includes(search)) &&
  (fEst === 'ALL' || g.estado === fEst) && 
+ (fEnv === 'ALL' || (g.para || 'ENVIAR') === fEnv) &&
  (fAsis === 'ALL' || (g.asistencia || 'PENDIENTE') === fAsis);
  });
 
@@ -692,6 +700,7 @@
  const isEditing = g.isEditing || false;
  let statusBadgeClass = g.estado === 'CONFIRMADO' ? 'badge-confirmado' : (g.estado === 'NO PODRA ASISTIR' ? 'badge-no-asistira' : 'badge-pendiente');
  
+ const envioVal = g.para || 'ENVIAR';
  const asisVal = g.asistencia || 'PENDIENTE';
  let asisBadgeClass = asisVal === 'FUE' ? 'badge-fue' : (asisVal === 'NO FUE' ? 'badge-no-fue' : 'badge-pendiente');
 
@@ -708,6 +717,13 @@
  <option value="ADULTO/A" ${g.tipo==='ADULTO/A'?'selected':''}>👤 Adulto/a</option>
  <option value="NENE" ${g.tipo==='NENE'?'selected':''}>👦 Nene</option>
  <option value="NENA" ${g.tipo==='NENA'?'selected':''}>👧 Nena</option>
+ </select>
+ </td>
+ <td>
+ <select class="status-badge badge-envio" onchange="updateGuest(${g.id}, 'para', this.value)">
+ <option value="ENVIAR" ${envioVal==='ENVIAR'?'selected':''}>📬 ENVIAR</option>
+ <option value="ENVIADO" ${envioVal==='ENVIADO'?'selected':''}>✅ ENVIADO</option>
+ <option value="CONSULTAR" ${envioVal==='CONSULTAR'?'selected':''}>❓ CONSULTAR</option>
  </select>
  </td>
  <td><select class="status-badge ${statusBadgeClass}" onchange="updateGuest(${g.id}, 'estado', this.value)">
@@ -883,9 +899,8 @@
  const unit = t.unitario || 0;
  const tot = t.total || 0;
  
- if(t.bought) {
+ // Suma todos los subtotales ingresados independientemente del tilde de comprado
  totalGastoGeneral += parseFloat(tot) || 0;
- }
 
  container.innerHTML += `
  <div class="check-item">
@@ -932,8 +947,7 @@
  }
  saveShopping();
  
- // Actualizar solo el valor visual del total en pantalla sin perder el foco del input actual
- const totalGastoGeneral = shoppingItems.reduce((acc, item) => item.bought ? acc + (parseFloat(item.total) || 0) : acc, 0);
+ const totalGastoGeneral = shoppingItems.reduce((acc, item) => acc + (parseFloat(item.total) || 0), 0);
  document.getElementById('metricTotalGasto').innerText = '$' + totalGastoGeneral.toLocaleString('es-AR');
  }
 
